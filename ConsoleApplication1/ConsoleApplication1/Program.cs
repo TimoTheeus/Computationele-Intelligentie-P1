@@ -17,8 +17,19 @@ namespace ConsoleApplication1
             while (true)
             {
                 //Initialise sudoku puzzle
-                //Get a line
-                for (int i = 0; i < N; i++)
+                //Get a line of numbers
+                string[] firstLine = Console.ReadLine().Split(' ');
+                //determine sudoku puzzle size
+                N = firstLine.Length;
+                //make the array to store the sudoku
+                sudoku = new int[N, N];
+                //store the first line
+                for(int k =0; k < N; k++)
+                {
+                    sudoku[0, k] = int.Parse(firstLine[k]);
+                }
+                //store remaining lines
+                for (int i = 1; i < N; i++)
                 {
                     //Get the numbers in a line
                     string[] numbers = Console.ReadLine().Split(' ');
@@ -28,9 +39,23 @@ namespace ConsoleApplication1
                         sudoku[i, j] = int.Parse(numbers[j]);
                     }
                 }
+                //print the current sudoku puzzle
+                print_sudoku();
             }
         }
-
+        static void print_sudoku()
+        {
+            for(int i =0; i < sudoku.GetLength(1);i++)
+            {
+                string line = "";
+                for (int j = 0; j < sudoku.GetLength(0);j++)
+                {
+                    line += j + " ";
+                }
+                Console.WriteLine(line);
+            }
+            Console.WriteLine("----------------------------");
+        }
         static bool Violation( int number, int row, int col )
         {
             if ( RowViolation( number, row, col )|| ColViolation( number, row, col )|| BoxViolation( number, row, col ) ) return true;
