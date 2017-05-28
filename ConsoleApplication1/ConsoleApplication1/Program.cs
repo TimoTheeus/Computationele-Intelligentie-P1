@@ -50,7 +50,7 @@ namespace ConsoleApplication1
                 string line = "";
                 for (int j = 0; j < sudoku.GetLength(0);j++)
                 {
-                    line += j + " ";
+                    line += sudoku[i,j] + " ";
                 }
                 Console.WriteLine(line);
             }
