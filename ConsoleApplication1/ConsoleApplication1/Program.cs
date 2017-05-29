@@ -14,6 +14,8 @@ namespace ConsoleApplication1
         static bool[,] unchangable;
         static bool backwards = false;
         const string direction = "left-right";
+        static int row = 0;
+        static int col = 0;
         static void Main(string[] args)
         {
             while (true)
@@ -46,10 +48,10 @@ namespace ConsoleApplication1
                         sudoku[i, j] = int.Parse(numbers[j]);
                     }
                 }
-                BackTrack(0, 0);
+                BackTrack();
             }
         }
-        static void MoveNext(int row, int col)
+        static void MoveNext()
         {
             backwards = false;
             //Solution found
@@ -62,35 +64,54 @@ namespace ConsoleApplication1
                 case "left-right":
                     {
                         //Backtrack next variable
-                        if (col < N - 1) { BackTrack(row, col + 1); }
-                        else { BackTrack(row + 1, 0); }
+                        if (col < N - 1)
+                        {
+                            col++;
+                            BackTrack();
+                        }
+                        else {
+                            row++;
+                            col = 0;
+                            BackTrack();
+                        }
                     }
                     break;
             }
         }
-        static void MoveBack(int row, int col)
+        static void MoveBack()
         {
             backwards = true;
             //Reset the current variable
-            sudoku[row, col] = 0;
+            //Reset the current variable
+            if (!unchangable[row, col])
+                sudoku[row, col] = 0;
             switch (direction)
             {
                 case "left-right":
                     {
                         //Backtrack previous variable
-                        if (col ==0) { BackTrack(row-1, N-1); }
-                        else { BackTrack(row, col-1); }
+                        if (col == 0)
+                        {
+                            row--;
+                            col = N - 1;
+                            BackTrack();
+                        }
+                        else
+                        {
+                            col--;
+                            BackTrack();
+                        }
                     }
                     break;
             }
         }
-        static void BackTrack(int row, int col)
+        static void BackTrack()
         {
             print_sudoku();
             //If the variable was given, move to the next or previous
             if (unchangable[row, col]) {
-                if (backwards) MoveBack(row, col);
-                else MoveNext(row, col);
+                if (backwards) MoveBack();
+                else MoveNext();
             }
             else
             {
@@ -100,15 +121,15 @@ namespace ConsoleApplication1
                     sudoku[row, col]++;
 
                     //If this doesnt create a violation
-                    if (!Violation(row, col)){
+                    if (!Violation()){
                         //Move on to the next variable
-                        MoveNext(row, col);
+                        MoveNext();
                     }
                     //Otherwise backtrack the same variable
-                    else BackTrack(row, col);
+                    else BackTrack();
                 }
                 //If the number cant be incremented, moveback to the previous variable
-                else { MoveBack(row, col); }
+                else { MoveBack(); }
             }
         }
         static void print_sudoku()
@@ -124,37 +145,34 @@ namespace ConsoleApplication1
             }
             Console.WriteLine("----------------------------");
         }
-        static bool Violation(int row, int col )
+        static bool Violation()
         {
-            if ( RowViolation(row, col )|| ColViolation(row, col )|| BoxViolation(row, col ) ) return true;
+            if ( RowViolation( )|| ColViolation( )|| BoxViolation( ) ) return true;
 
             return false;
         }
 
-        static bool RowViolation(int row, int col )
+        static bool RowViolation()
         {
-            int number = sudoku[row, col];
             // Check for violations in a row
             for (int i = 0; i < N; i++)
             {
-                if (sudoku[row, i] == number&&i!=col) return true;
+                if (sudoku[row, i] == sudoku[row, col] && i!=col) return true;
             }
             return false;
         }
 
-        static bool ColViolation(int row, int col )
+        static bool ColViolation( )
         {
-            int number = sudoku[row, col];
             // Check for violations in a column
             for (int i = 0; i < N; i++)
-                if (sudoku[i, col] == number&&i!=row) return true;
+                if (sudoku[i, col] == sudoku[row, col] && i!=row) return true;
 
             return false;
         }
 
-        static bool BoxViolation(int row, int col )
+        static bool BoxViolation()
         {
-            int number = sudoku[row, col];
             int beginRow = 0;
             int beginCol = 0;
             int sN = (int)Math.Sqrt(N);
@@ -186,7 +204,7 @@ namespace ConsoleApplication1
             // Check for box violation
             for (int i = 0; i < sN; i++)
                 for (int j = 0; j < sN; j++)
-                    if (sudoku[beginRow + i, beginCol + j] == number&&!(beginRow+i==row&&beginCol+j==col)) return true;
+                    if (sudoku[beginRow + i, beginCol + j] == sudoku[row, col] && !(beginRow+i==row&&beginCol+j==col)) return true;
 
             return false;
         }
