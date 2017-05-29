@@ -8,7 +8,7 @@ namespace ConsoleApplication1
 {
     class Program
     {
-        static int N = 9;
+        static int N;
         //Array to store sudoku puzzle in
         static int[,] sudoku;
         static bool[,] unchangable;
@@ -56,6 +56,7 @@ namespace ConsoleApplication1
             backwards = false;
             //Solution found
             if (row == N - 1 && col == N - 1) {
+                print_sudoku();
                 Console.WriteLine("foundsolution");
                 return;
             }
