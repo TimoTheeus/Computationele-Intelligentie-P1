@@ -8,15 +8,20 @@ namespace ConsoleApplication1
 {
     class Program
     {
+
+        //Variables
         static int N;
         //Array to store sudoku puzzle in
         static int[,] sudoku;
         static bool[,] unchangable;
         static bool backwards = false;
-        const string direction = "up-down";
+        const string direction = "left-down"; //Method 1 : left to right and downwards
+        //const string direction = "right-up"; //Method 2 : right to left and upwards
         static int row = 0;
         static int col = 0;
         static bool foundsolution = false;
+
+
         static void Main(string[] args)
         {
             while (true)
@@ -49,20 +54,41 @@ namespace ConsoleApplication1
                 BackTrack();
             }
         }
+
+        static bool FoundSolution()
+        {
+            if (direction == "left-down") {
+                if (row == N - 1 && col == N - 1)
+                {
+                    Console.WriteLine("----------------------------");
+                    print_sudoku();
+                    foundsolution = true;
+                    Console.WriteLine("foundsolution");
+                    return true;
+                }
+            }
+            else if (direction == "right-up") {
+                if (row == 0 && col == 0)
+                {
+                    Console.WriteLine("----------------------------");
+                    print_sudoku();
+                    foundsolution = true;
+                    Console.WriteLine("foundsolution");
+                    return true;
+                }
+            }
+            return false;
+        }
+
         static void MoveNext()
         {
             backwards = false;
             //Solution found
-            if (row == N - 1 && col == N - 1) {
-                Console.WriteLine("----------------------------");
-                print_sudoku();
-                foundsolution = true;
-                Console.WriteLine("foundsolution");
-                return;
-            }
+            if (FoundSolution()) return;
+
             switch (direction)
             {
-                case "left-right":
+                case "left-down":
                         //Backtrack next variable
                         if (col < N - 1)
                         {
@@ -75,15 +101,16 @@ namespace ConsoleApplication1
                             //BackTrack();
                         }
                         break;
-                case "up-down":
-                        if (row < N - 1)
+                case "right-up":
+                        //Backtrack next variable
+                        if (col != 0)
                         {
-                            row++;
+                            col--;
                         }
                         else
                         {
-                            row = 0;
-                            col++;
+                            row--;
+                            col = N-1;
                         }
                     break;
             }
@@ -97,31 +124,29 @@ namespace ConsoleApplication1
                 sudoku[row, col] = 0;
             switch (direction)
             {
-                case "left-right":
+                case "left-down":
                         //Backtrack previous variable
                         if (col == 0)
                         {
                             row--;
                             col = N - 1;
-                            //BackTrack();
                         }
                         else
                         {
                             col--;
-                            //BackTrack();
                         }
                     break;
-                case "up-down":
-                    if(row == 0)
+                case "right-up":
+                    //Backtrack previous variable
+                    if (col == N - 1)
                     {
-                        row = N - 1;
-                        col--;
+                        row++;
+                        col = 0;
                     }
                     else
                     {
-                        row--;
+                        col++;
                     }
-                    break;
             }
         }
         static void BackTrack()
@@ -157,12 +182,14 @@ namespace ConsoleApplication1
                 }
             }
         }
+
+        //Print the sudoku
         static void print_sudoku()
         {
             for(int i =0; i < sudoku.GetLength(1);i++)
             {
                 string line = "";
-                for (int j = 0; j < sudoku.GetLength(0);j++)
+                for ( int j = 0; j < sudoku.GetLength(0); j++ )
                 {
                     line += sudoku[i,j] + " ";
                 }
@@ -170,66 +197,70 @@ namespace ConsoleApplication1
             }
             Console.WriteLine("----------------------------");
         }
+
+        //Check for row, column and box violations
         static bool Violation()
         {
-            if ( RowViolation( )|| ColViolation( )|| BoxViolation( ) ) return true;
+            if ( RowViolation() || ColViolation() || BoxViolation() ) return true;
 
             return false;
         }
 
+        // Check for violations in a row
         static bool RowViolation()
         {
-            // Check for violations in a row
             for (int i = 0; i < N; i++)
             {
-                if (sudoku[row, i] == sudoku[row, col] && i!=col) return true;
+                if ( sudoku[row, i] == sudoku[row, col] && i != col ) return true;
             }
             return false;
         }
 
+        // Check for violations in a column
         static bool ColViolation( )
         {
-            // Check for violations in a column
-            for (int i = 0; i < N; i++)
-                if (sudoku[i, col] == sudoku[row, col] && i!=row) return true;
+            for ( int i = 0; i < N; i++ )
+                if ( sudoku[i, col] == sudoku[row, col] && i != row ) return true;
 
             return false;
         }
 
+        // Check for violations in a sqrt(N) by sqrt(N) box
         static bool BoxViolation()
         {
+            //Variables to determine begin rows and columns
             int beginRow = 0;
             int beginCol = 0;
             int sN = (int)Math.Sqrt(N);
 
+            //Determine which row we are to get the begin row
             int restRow = 0;
-            while (restRow != sN)
+            while ( restRow != sN )
             {
-                if (row % sN == restRow)
+                if ( row % sN == restRow )
                 {
                     beginRow = row - restRow;
                     break;
-                    //endRow = beginRow + sN - 1;
                 }
                 restRow++;
             }
 
+            //Determine which column we are to get the begin column
             int restCol = 0;
-            while (restCol != sN)
+            while ( restCol != sN )
             {
-                if (col % sN == restCol)
+                if ( col % sN == restCol )
                 {
                     beginCol = col - restCol;
                     break;
-                    //endCol = beginCol + sN - 1;
                 }
                 restCol++;
             }
 
             // Check for box violation
-            for (int i = 0; i < sN; i++)
-                for (int j = 0; j < sN; j++)
-                    if (sudoku[beginRow + i, beginCol + j] == sudoku[row, col] && !(beginRow+i==row&&beginCol+j==col)) return true;
+            for ( int i = 0; i < sN; i++ )
+                for ( int j = 0; j < sN; j++ )
+                    if ( sudoku[beginRow + i, beginCol + j] == sudoku[row, col] && !( beginRow + i == row && beginCol + j == col )) return true;
 
             return false;
         }
