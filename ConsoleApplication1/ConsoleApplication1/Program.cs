@@ -22,30 +22,27 @@ namespace ConsoleApplication1
             {
                 //Initialise sudoku puzzle
                 //Get a line of numbers
-                string[] firstLine = Console.ReadLine().Split(' ');
-                //determine sudoku puzzle size
-                N = firstLine.Length;
-                //make the array to store the sudoku
+                string[] line = Console.ReadLine().Split(' ');
+                //Determine sudoku puzzle size
+                N = line.Length;
+                //Make the array to store the sudoku
                 sudoku = new int[N, N];
                 unchangable = new bool[N, N];
-                //store the first line
-                for(int k =0; k < N; k++)
-                {
-                    int number = int.Parse(firstLine[k]);
-                    if (number != 0) unchangable[0, k] = true;
-                    sudoku[0, k] = number;
-                }
-                //store remaining lines
-                for (int i = 1; i < N; i++)
+
+                //Store lines
+                for (int i = 0; i < N; i++)
                 {
                     //Get the numbers in a line
-                    string[] numbers = Console.ReadLine().Split(' ');
+                    if (i != 0)
+                    {
+                        line = Console.ReadLine().Split(' ');
+                    }
                     //Store numbers in sudoku array
                     for (int j = 0; j < N; j++)
                     {
-                        int number = int.Parse(numbers[j]);
+                        int number = int.Parse(line[j]);
                         if (number != 0) unchangable[i, j] = true;
-                        sudoku[i, j] = int.Parse(numbers[j]);
+                        sudoku[i, j] = number;
                     }
                 }
                 BackTrack();

@@ -10,3 +10,9 @@ D:\Github\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication
 D:\Github\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.csprojResolveAssemblyReference.cache
 D:\Github\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.exe
 D:\Github\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe.config
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.exe
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.pdb
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.csprojResolveAssemblyReference.cache
