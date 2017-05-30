@@ -13,9 +13,10 @@ namespace ConsoleApplication1
         static int[,] sudoku;
         static bool[,] unchangable;
         static bool backwards = false;
-        const string direction = "left-right";
+        const string direction = "up-down";
         static int row = 0;
         static int col = 0;
+        static bool foundsolution = false;
         static void Main(string[] args)
         {
             while (true)
@@ -53,26 +54,37 @@ namespace ConsoleApplication1
             backwards = false;
             //Solution found
             if (row == N - 1 && col == N - 1) {
+                Console.WriteLine("----------------------------");
                 print_sudoku();
+                foundsolution = true;
                 Console.WriteLine("foundsolution");
                 return;
             }
             switch (direction)
             {
                 case "left-right":
-                    {
                         //Backtrack next variable
                         if (col < N - 1)
                         {
                             col++;
-                            BackTrack();
+                            //BackTrack();
                         }
                         else {
                             row++;
                             col = 0;
-                            BackTrack();
+                            //BackTrack();
                         }
-                    }
+                        break;
+                case "up-down":
+                        if (row < N - 1)
+                        {
+                            row++;
+                        }
+                        else
+                        {
+                            row = 0;
+                            col++;
+                        }
                     break;
             }
         }
@@ -86,48 +98,63 @@ namespace ConsoleApplication1
             switch (direction)
             {
                 case "left-right":
-                    {
                         //Backtrack previous variable
                         if (col == 0)
                         {
                             row--;
                             col = N - 1;
-                            BackTrack();
+                            //BackTrack();
                         }
                         else
                         {
                             col--;
-                            BackTrack();
+                            //BackTrack();
                         }
+                    break;
+                case "up-down":
+                    if(row == 0)
+                    {
+                        row = N - 1;
+                        col--;
+                    }
+                    else
+                    {
+                        row--;
                     }
                     break;
             }
         }
         static void BackTrack()
         {
-            print_sudoku();
-            //If the variable was given, move to the next or previous
-            if (unchangable[row, col]) {
-                if (backwards) MoveBack();
-                else MoveNext();
-            }
-            else
+            while (true)
             {
-                //If the number can still be incremented
-                if (sudoku[row, col] < N){
-                    //increment it by 1
-                    sudoku[row, col]++;
-
-                    //If this doesnt create a violation
-                    if (!Violation()){
-                        //Move on to the next variable
-                        MoveNext();
-                    }
-                    //Otherwise backtrack the same variable
-                    else BackTrack();
+                if (foundsolution) break;
+               // print_sudoku();
+                //If the variable was given, move to the next or previous
+                if (unchangable[row, col])
+                {
+                    if (backwards) MoveBack();
+                    else MoveNext();
                 }
-                //If the number cant be incremented, moveback to the previous variable
-                else { MoveBack(); }
+                else
+                {
+                    //If the number can still be incremented
+                    if (sudoku[row, col] < N)
+                    {
+                        //increment it by 1
+                        sudoku[row, col]++;
+
+                        //If this doesnt create a violation
+                        if (!Violation())
+                        {
+
+                            //Move on to the next variable
+                            MoveNext();
+                        }
+                    }
+                    //If the number cant be incremented, moveback to the previous variable
+                    else { MoveBack(); }
+                }
             }
         }
         static void print_sudoku()
