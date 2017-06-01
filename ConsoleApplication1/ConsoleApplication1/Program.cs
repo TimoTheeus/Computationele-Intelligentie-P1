@@ -15,7 +15,7 @@ namespace ConsoleApplication1
         static int[,] sudoku;
         static bool[,] unchangable;
         static bool backwards = false;
-        const string direction = "left-down"; //Method 1 : left to right and downwards
+        const string direction = "right-up"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
         static int row = 0;
         static int col = 0;
@@ -34,6 +34,7 @@ namespace ConsoleApplication1
                 //Make the array to store the sudoku
                 sudoku = new int[N, N];
                 unchangable = new bool[N, N];
+                if (direction == "right-up") { row = N - 1; col = N - 1; }
 
                 //Store lines
                 for (int i = 0; i < N; i++)
@@ -147,6 +148,7 @@ namespace ConsoleApplication1
                     {
                         col++;
                     }
+                    break;
             }
         }
         static void BackTrack()
