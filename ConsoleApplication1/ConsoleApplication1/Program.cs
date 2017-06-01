@@ -6,6 +6,12 @@ using System.Threading.Tasks;
 
 namespace ConsoleApplication1
 {
+    struct Square
+    {
+       public int row;
+       public int column;
+       public int domainSize;
+    }
     class Program
     {
 
@@ -15,13 +21,14 @@ namespace ConsoleApplication1
         static int[,] sudoku;
         static bool[,] unchangable;
         static bool backwards = false;
-        const string direction = "right-up"; //Method 1 : left to right and downwards
+        //const string direction = "left-down"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
+        const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
         static int row = 0;
         static int col = 0;
         static bool foundsolution = false;
-
-
+        static List<Square> sortedSquares;
+        static int current_listindex = 0;
         static void Main(string[] args)
         {
             while (true)
@@ -34,7 +41,8 @@ namespace ConsoleApplication1
                 //Make the array to store the sudoku
                 sudoku = new int[N, N];
                 unchangable = new bool[N, N];
-                if (direction == "right-up") { row = N - 1; col = N - 1; }
+                
+                
 
                 //Store lines
                 for (int i = 0; i < N; i++)
@@ -52,35 +60,81 @@ namespace ConsoleApplication1
                         sudoku[i, j] = number;
                     }
                 }
+                if ( direction == "domain-oriented"){initialise_domainlist(); }
+                   else if (direction == "right-up") { row = N - 1; col = N - 1; }
+
                 BackTrack();
             }
         }
-
+        static void initialise_domainlist()
+        {
+            sortedSquares = new List<Square>();
+            //Add squares with their domain size to the 
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    if (!unchangable[i, j])
+                    {
+                        Square sqr = new Square();
+                        row = i;
+                        col = j;
+                        sqr.row = row;
+                        sqr.column = col;
+                        sqr.domainSize = domainSize();
+                        sortedSquares.Add(sqr);
+                    }
+                }
+            }
+            sortedSquares.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
+            row = sortedSquares.First().row;
+            col = sortedSquares.First().column;
+        }
+        static int domainSize()
+        {
+            int size = 0;
+            for(int i = 1; i <= N; i++)
+            {
+                sudoku[row, col] = i;
+                if (!Violation()){
+                    size++;
+                }
+            }
+            sudoku[row, col] = 0;
+            return size;
+        }
         static bool FoundSolution()
         {
             if (direction == "left-down") {
                 if (row == N - 1 && col == N - 1)
                 {
-                    Console.WriteLine("----------------------------");
-                    print_sudoku();
-                    foundsolution = true;
-                    Console.WriteLine("foundsolution");
+                    setandprint_found_solution();
                     return true;
                 }
             }
             else if (direction == "right-up") {
                 if (row == 0 && col == 0)
                 {
-                    Console.WriteLine("----------------------------");
-                    print_sudoku();
-                    foundsolution = true;
-                    Console.WriteLine("foundsolution");
+                    setandprint_found_solution();
+                    return true;
+                }
+            }
+            else if(direction == "domain-oriented"){
+                if(row == sortedSquares.Last().row && col == sortedSquares.Last().column)
+                {
+                    setandprint_found_solution();
                     return true;
                 }
             }
             return false;
         }
-
+        static void setandprint_found_solution()
+        {
+            Console.WriteLine("----------------------------");
+            print_sudoku();
+            foundsolution = true;
+            Console.WriteLine("foundsolution");
+        }
         static void MoveNext()
         {
             backwards = false;
@@ -113,6 +167,11 @@ namespace ConsoleApplication1
                             row--;
                             col = N-1;
                         }
+                    break;
+                case "domain-oriented":
+                    current_listindex++;
+                    row = sortedSquares[current_listindex].row;
+                    col = sortedSquares[current_listindex].column;
                     break;
             }
         }
@@ -149,6 +208,11 @@ namespace ConsoleApplication1
                         col++;
                     }
                     break;
+                case "domain-oriented":
+                    current_listindex--;
+                    row = sortedSquares[current_listindex].row;
+                    col = sortedSquares[current_listindex].column;
+                    break;
             }
         }
         static void BackTrack()
@@ -174,7 +238,6 @@ namespace ConsoleApplication1
                         //If this doesnt create a violation
                         if (!Violation())
                         {
-
                             //Move on to the next variable
                             MoveNext();
                         }
