@@ -29,6 +29,8 @@ namespace ConsoleApplication1
         static bool foundsolution = false;
         static List<Square> sortedSquares;
         static int current_listindex = 0;
+        static int endRow;
+        static int endCol;
         static void Main(string[] args)
         {
             while (true)
@@ -61,7 +63,10 @@ namespace ConsoleApplication1
                     }
                 }
                 if ( direction == "domain-oriented"){initialise_domainlist(); }
-                   else if (direction == "right-up") { row = N - 1; col = N - 1; }
+                   else if (direction == "right-up") { row = N - 1; col = N - 1; endRow = 0; endCol = 0; }
+                     else if(direction == "left-down"){ endRow = N - 1;
+                                                        endCol = N - 1;
+                          }
 
                 BackTrack();
             }
@@ -89,6 +94,9 @@ namespace ConsoleApplication1
             sortedSquares.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
             row = sortedSquares.First().row;
             col = sortedSquares.First().column;
+
+            endRow = sortedSquares.Last().row;
+            endCol = sortedSquares.Last().column;
         }
         static int domainSize()
         {
@@ -105,26 +113,10 @@ namespace ConsoleApplication1
         }
         static bool FoundSolution()
         {
-            if (direction == "left-down") {
-                if (row == N - 1 && col == N - 1)
-                {
-                    setandprint_found_solution();
-                    return true;
-                }
-            }
-            else if (direction == "right-up") {
-                if (row == 0 && col == 0)
-                {
-                    setandprint_found_solution();
-                    return true;
-                }
-            }
-            else if(direction == "domain-oriented"){
-                if(row == sortedSquares.Last().row && col == sortedSquares.Last().column)
-                {
-                    setandprint_found_solution();
-                    return true;
-                }
+            if(row == endRow && col == endCol)
+            {
+                setandprint_found_solution();
+                return true;
             }
             return false;
         }
@@ -220,7 +212,7 @@ namespace ConsoleApplication1
             while (true)
             {
                 if (foundsolution) break;
-               // print_sudoku();
+                //print_sudoku();
                 //If the variable was given, move to the next or previous
                 if (unchangable[row, col])
                 {
