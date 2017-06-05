@@ -27,8 +27,8 @@ namespace ConsoleApplication1
         static int row = 0;
         static int col = 0;
         static bool foundsolution = false;
-        static List<Square> sortedSquares;
-        static int current_listindex = 0;
+        static Square[] squaresArray;
+        static int current_arrayindex = 0;
         static int endRow;
         static int endCol;
         static void Main(string[] args)
@@ -73,7 +73,7 @@ namespace ConsoleApplication1
         }
         static void initialise_domainlist()
         {
-            sortedSquares = new List<Square>();
+            List<Square> sortedSquares = new List<Square>();
             //Add squares with their domain size to the 
             for (int i = 0; i < N; i++)
             {
@@ -92,11 +92,12 @@ namespace ConsoleApplication1
                 }
             }
             sortedSquares.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
-            row = sortedSquares.First().row;
-            col = sortedSquares.First().column;
-
-            endRow = sortedSquares.Last().row;
-            endCol = sortedSquares.Last().column;
+            squaresArray = sortedSquares.ToArray();
+            row = squaresArray[0].row;
+            col = squaresArray[0].column;
+            int lastIndex = squaresArray.Length - 1;
+            endRow = squaresArray[lastIndex].row;
+            endCol = squaresArray[lastIndex].column;
         }
         static int domainSize()
         {
@@ -161,9 +162,9 @@ namespace ConsoleApplication1
                         }
                     break;
                 case "domain-oriented":
-                    current_listindex++;
-                    row = sortedSquares[current_listindex].row;
-                    col = sortedSquares[current_listindex].column;
+                    current_arrayindex++;
+                    row = squaresArray[current_arrayindex].row;
+                    col = squaresArray[current_arrayindex].column;
                     break;
             }
         }
@@ -201,9 +202,9 @@ namespace ConsoleApplication1
                     }
                     break;
                 case "domain-oriented":
-                    current_listindex--;
-                    row = sortedSquares[current_listindex].row;
-                    col = sortedSquares[current_listindex].column;
+                    current_arrayindex--;
+                    row = squaresArray[current_arrayindex].row;
+                    col = squaresArray[current_arrayindex].column;
                     break;
             }
         }
