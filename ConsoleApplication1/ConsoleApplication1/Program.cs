@@ -82,11 +82,9 @@ namespace ConsoleApplication1
                     if (!unchangable[i, j])
                     {
                         Square sqr = new Square();
-                        row = i;
-                        col = j;
-                        sqr.row = row;
-                        sqr.column = col;
-                        sqr.domainSize = domainSize();
+                        sqr.row = i;
+                        sqr.column = j;
+                        sqr.domainSize = domainSize(i,j);
                         sortedSquares.Add(sqr);
                     }
                 }
@@ -99,13 +97,13 @@ namespace ConsoleApplication1
             endRow = squaresArray[lastIndex].row;
             endCol = squaresArray[lastIndex].column;
         }
-        static int domainSize()
+        static int domainSize(int row, int col)
         {
             int size = 0;
             for(int i = 1; i <= N; i++)
             {
                 sudoku[row, col] = i;
-                if (!Violation()){
+                if (!Violation(row,col)){
                     size++;
                 }
             }
@@ -229,7 +227,7 @@ namespace ConsoleApplication1
                         sudoku[row, col]++;
 
                         //If this doesnt create a violation
-                        if (!Violation())
+                        if (!Violation(row,col))
                         {
                             //Move on to the next variable
                             MoveNext();
@@ -257,15 +255,15 @@ namespace ConsoleApplication1
         }
 
         //Check for row, column and box violations
-        static bool Violation()
+        static bool Violation(int row, int col)
         {
-            if ( RowViolation() || ColViolation() || BoxViolation() ) return true;
+            if ( RowViolation(row,col) || ColViolation(row, col) || BoxViolation(row, col) ) return true;
 
             return false;
         }
 
         // Check for violations in a row
-        static bool RowViolation()
+        static bool RowViolation(int row, int col)
         {
             for (int i = 0; i < N; i++)
             {
@@ -275,7 +273,7 @@ namespace ConsoleApplication1
         }
 
         // Check for violations in a column
-        static bool ColViolation( )
+        static bool ColViolation(int row, int col)
         {
             for ( int i = 0; i < N; i++ )
                 if ( sudoku[i, col] == sudoku[row, col] && i != row ) return true;
@@ -284,7 +282,7 @@ namespace ConsoleApplication1
         }
 
         // Check for violations in a sqrt(N) by sqrt(N) box
-        static bool BoxViolation()
+        static bool BoxViolation(int row, int col)
         {
             //Variables to determine begin rows and columns
             int beginRow = 0;
