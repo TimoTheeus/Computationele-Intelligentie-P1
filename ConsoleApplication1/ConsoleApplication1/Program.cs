@@ -10,24 +10,79 @@ namespace ConsoleApplication1
     {
        public int row;
        public int column;
+       public int number;
        public int domainSize;
+       public List<int> variables;
     }
 
-    struct Domain
+    struct Location
     {
         public int row;
         public int column;
-        public int domainSize;
-        public List<int> variables; 
+        public int size;
+    }
+    class Sudoku_Grid
+    {
+        public Sudoku_Grid parent;
+        public Location[] sorted_on_domainsize;
+        public Square[,] sudoku;
+        public int currentSquareIndex;
+        public int currentVariableIndex;
+        int N;
+        public Sudoku_Grid()
+        {
+            currentSquareIndex = 0;
+            currentVariableIndex = 0;
+            N = Program.N;
+        }
+        public void ForwardCheck()
+        {
+            //Copy this grid to make changes
+            Sudoku_Grid child = this;
+            //get location of most constraining square
+            int row = sorted_on_domainsize[currentSquareIndex].row;
+            int col = sorted_on_domainsize[currentSquareIndex].column;
+            //get a variable of the most constraining square
+            int variable = sudoku[row, col].variables[currentVariableIndex];
+            //Set the square to this variable
+            child.sudoku[row, col].number = variable;
+            MakeConsistent(child, row, col);
+        }
+        void MakeConsistent(Sudoku_Grid grid,int row, int col)
+        {
+            int number = grid.sudoku[row, col].number;
+            for(int i = 0; i < N; i++)
+            {
+                //remove variable from domains in same row
+                if (i != col)
+                {
+                    grid.sudoku[row, i].variables.Remove(number);
+                    //if empty
+                    if (!grid.sudoku[row, i].variables.Any())
+                    {
+                        //move to next index
+                        if (currentVariableIndex < grid.sudoku[row, col].domainSize - 1)
+                            currentVariableIndex++;
+                        else
+                        {
+                            currentVariableIndex = 0;
+                            currentSquareIndex++;
+                        }
+                    }
+                }
+                //remove variable from domains in same column
+                grid.sudoku[i, col].variables.Remove(number);
+            }
+        }
     }
     class Program
     {
-
         //Variables
-        static int N;
+        static public int N;
         //Array to store sudoku puzzle in
-        static int[,] sudoku;
+        static public int[,] sudoku;
         static bool[,] unchangable;
+        static Sudoku_Grid currentGrid;
         static bool backwards = false;
         //const string direction = "left-down"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
@@ -40,6 +95,7 @@ namespace ConsoleApplication1
         static int current_arrayindex = 0;
         static int endRow;
         static int endCol;
+
         static void Main(string[] args)
         {
             while (true)
@@ -79,32 +135,46 @@ namespace ConsoleApplication1
                 BackTrack();
             }
         }
-        
-
-        static void MakeConsistent(int row, int col, int number)
+        static void fcMCV()
         {
-            int temp = sudoku[row, col];
-            sudoku[row, col] = number;
-
-            if(!Violation(row, col))
-            {
-                //Row consistency
-                for (int i = 0; i < N; i++)
-                    if (sudoku[row, i] == sudoku[row, col] && i != col)
-                        //haal uit domein;
-                        sudoku[row, col] = number;
-
-                //Col consistency
-                for (int i = 0; i < N; i++)
-                    if (sudoku[i, col] == sudoku[row, col] && i != row)
-                        sudoku[row, col] = number;
-
-                //Box consistency
-
-
-            }
         }
-
+        static void initialise_forwardchecking()
+        {
+            currentGrid = new Sudoku_Grid();
+            List<Location> sortedLocations = new List<Location>();
+            //Add squares with their domain size to the 
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    currentGrid.sudoku[i, j].row = i;
+                    currentGrid.sudoku[i, j].column = j;
+                    currentGrid.sudoku[i, j].number = sudoku[i, j];
+                    if (!unchangable[i, j])
+                    {
+                        int size = 0;
+                        for (int k = 1; k <= N; k++)
+                        {
+                            sudoku[row, col] = k;
+                            if (!Violation(row, col))
+                            {
+                                currentGrid.sudoku[i, j].variables.Add(k);
+                                size++;
+                            }
+                        }
+                        sudoku[row, col] = 0;
+                        currentGrid.sudoku[i, j].domainSize = size;
+                        Location l = new Location();
+                        l.row = i;
+                        l.column = j;
+                        l.size = size;
+                        sortedLocations.Add(l);
+                    }
+                }
+            }
+            currentGrid.sorted_on_domainsize = sortedLocations.ToArray();
+            Array.Sort(currentGrid.sorted_on_domainsize, (x, y) => x.size.CompareTo(y.size));
+        }
         static void initialise_domainlist()
         {
             List<Square> sortedSquares = new List<Square>();
