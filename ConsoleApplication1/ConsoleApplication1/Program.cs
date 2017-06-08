@@ -12,6 +12,14 @@ namespace ConsoleApplication1
        public int column;
        public int domainSize;
     }
+
+    struct Domain
+    {
+        public int row;
+        public int column;
+        public int domainSize;
+        public List<int> variables; 
+    }
     class Program
     {
 
@@ -20,10 +28,13 @@ namespace ConsoleApplication1
         //Array to store sudoku puzzle in
         static int[,] sudoku;
         static bool[,] unchangable;
+        static List<Domain> forwardcheck;
+        static Domain[] forwardArray; 
         static bool backwards = false;
         //const string direction = "left-down"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
-        const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
+        //const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
+        const string direction = "fcmcv";
         static int row = 0;
         static int col = 0;
         static bool foundsolution = false;
@@ -62,15 +73,73 @@ namespace ConsoleApplication1
                         sudoku[i, j] = number;
                     }
                 }
-                if ( direction == "domain-oriented"){initialise_domainlist(); }
-                   else if (direction == "right-up") { row = N - 1; col = N - 1; endRow = 0; endCol = 0; }
-                     else if(direction == "left-down"){ endRow = N - 1;
-                                                        endCol = N - 1;
-                          }
+
+                if ( direction == "domain-oriented") initialise_domainlist(); 
+                else if (direction == "right-up") { row = N - 1; col = N - 1; endRow = 0; endCol = 0; }
+                else if (direction == "left-down"){ endRow = N - 1; endCol = N - 1; }
+                else if (direction == "fcmcv") { forwardcheck = new List<Domain>(); initialiseForwardcheck(); }
 
                 BackTrack();
             }
         }
+        
+
+        static void MakeConsistent(int row, int col, int number)
+        {
+            int temp = sudoku[row, col];
+            sudoku[row, col] = number;
+
+            if(!Violation(row, col))
+            {
+                //Row consistency
+                for (int i = 0; i < N; i++)
+                    if (sudoku[row, i] == sudoku[row, col] && i != col)
+                        //haal uit domein;
+                        sudoku[row, col] = number;
+
+                //Col consistency
+                for (int i = 0; i < N; i++)
+                    if (sudoku[i, col] == sudoku[row, col] && i != row)
+                        sudoku[row, col] = number;
+
+                //Box consistency
+
+
+            }
+        }
+
+        static void initialiseForwardcheck()
+        {
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    if (!unchangable[i, j])
+                    {
+                        for(int x = 1; i < N+1; i++)
+                        {
+                            sudoku[i, j] = x;
+                            if (!Violation(i, j))
+                            {
+                                Domain dom = new Domain();
+                                dom.row = i;
+                                dom.column = j;
+                                dom.domainSize++;
+                                dom.variables.Add(x);
+                                forwardcheck.Add(dom);
+                            }
+                        }
+                        sudoku[i, j] = 0;
+                    }
+                }
+            }
+
+            forwardcheck.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
+            forwardArray = forwardcheck.ToArray();
+            row = squaresArray[0].row;
+            col = squaresArray[0].column;
+        }
+
         static void initialise_domainlist()
         {
             List<Square> sortedSquares = new List<Square>();

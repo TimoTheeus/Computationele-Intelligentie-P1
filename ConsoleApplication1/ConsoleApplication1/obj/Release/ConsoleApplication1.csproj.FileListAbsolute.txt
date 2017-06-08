@@ -9,3 +9,6 @@ C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplicatio
 C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Release\ConsoleApplication1.exe
 C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Release\ConsoleApplication1.pdb
 C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Release\ConsoleApplication1.csprojResolveAssemblyReference.cache
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Release\ConsoleApplication1.exe.config
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Release\ConsoleApplication1.exe
+C:\Users\Thomas\Documents\2016-2017\P4 - Computationele Intelligentie\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Release\ConsoleApplication1.pdb
