@@ -22,3 +22,6 @@ C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplicatio
 C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe
 C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.pdb
 C:\Users\Timo\Documents\GitHub\Computationele-Intelligentie-P1\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.csprojResolveAssemblyReference.cache
+C:\Users\Timo\Documents\Computationele_New\Computationele-Intelligentie-P1-3ed6ff1203b7a5aed97f8aaab0a8b0e42a655656\ConsoleApplication1\ConsoleApplication1\bin\Debug\ConsoleApplication1.exe.config
+C:\Users\Timo\Documents\Computationele_New\Computationele-Intelligentie-P1-3ed6ff1203b7a5aed97f8aaab0a8b0e42a655656\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.exe
+C:\Users\Timo\Documents\Computationele_New\Computationele-Intelligentie-P1-3ed6ff1203b7a5aed97f8aaab0a8b0e42a655656\ConsoleApplication1\ConsoleApplication1\obj\Debug\ConsoleApplication1.pdb
