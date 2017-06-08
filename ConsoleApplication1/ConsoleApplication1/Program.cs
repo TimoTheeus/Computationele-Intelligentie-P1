@@ -11,14 +11,12 @@ namespace ConsoleApplication1
        public int row;
        public int column;
        public int domainSize;
+       public List<int> variables;
     }
-
-    struct Domain
+    struct Position
     {
         public int row;
-        public int column;
-        public int domainSize;
-        public List<int> variables; 
+        public int col;
     }
     class Program
     {
@@ -28,13 +26,12 @@ namespace ConsoleApplication1
         //Array to store sudoku puzzle in
         static int[,] sudoku;
         static bool[,] unchangable;
-        static List<Domain> forwardcheck;
-        static Domain[] forwardArray; 
+        static Square[,] forwardArray; 
         static bool backwards = false;
         //const string direction = "left-down"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
-        //const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
-        const string direction = "fcmcv";
+        const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
+        //const string direction = "fcmcv";
         static int row = 0;
         static int col = 0;
         static bool foundsolution = false;
@@ -74,76 +71,96 @@ namespace ConsoleApplication1
                     }
                 }
 
-                if ( direction == "domain-oriented") initialise_domainlist(); 
+                if (direction == "domain-oriented" || direction == "fcmcv") initialiseDomainlist(); 
                 else if (direction == "right-up") { row = N - 1; col = N - 1; endRow = 0; endCol = 0; }
                 else if (direction == "left-down"){ endRow = N - 1; endCol = N - 1; }
-                else if (direction == "fcmcv") { forwardcheck = new List<Domain>(); initialiseForwardcheck(); }
 
-                BackTrack();
+                if (direction == "fcmcv") ForwardCheck();
+                else BackTrack();
             }
         }
         
-
-        static void MakeConsistent(int row, int col, int number)
+        static void ForwardCheck()
         {
-            int temp = sudoku[row, col];
-            sudoku[row, col] = number;
+            int row = forwardArray[0].row;
+            int col = forwardArray[0].column;
+            int variable = forwardArray[0].variables.First();
 
-            if(!Violation(row, col))
+            if(MakeConsistent(row, col, variable))
             {
-                //Row consistency
-                for (int i = 0; i < N; i++)
-                    if (sudoku[row, i] == sudoku[row, col] && i != col)
-                        //haal uit domein;
-                        sudoku[row, col] = number;
-
-                //Col consistency
-                for (int i = 0; i < N; i++)
-                    if (sudoku[i, col] == sudoku[row, col] && i != row)
-                        sudoku[row, col] = number;
-
-                //Box consistency
-
 
             }
-        }
 
-        static void initialiseForwardcheck()
+        }
+        static bool MakeConsistent(int row, int col, int number)
         {
-            for (int i = 0; i < N; i++)
+            //Box consistency
+            //Variables to determine begin rows and columns
+            int beginRow = 0;
+            int beginCol = 0;
+            int sN = (int)Math.Sqrt(N);
+
+            //Determine which row we are to get the begin row
+            int restRow = 0;
+            while (restRow != sN)
             {
-                for (int j = 0; j < N; j++)
+                if (row % sN == restRow)
                 {
-                    if (!unchangable[i, j])
+                    beginRow = row - restRow;
+                    break;
+                }
+                restRow++;
+            }
+
+            //Determine which column we are to get the begin column
+            int restCol = 0;
+            while (restCol != sN)
+            {
+                if (col % sN == restCol)
+                {
+                    beginCol = col - restCol;
+                    break;
+                }
+                restCol++;
+            }
+            List<int> changedIndices = new List<int>();
+            int currentIndex = 0;
+            //for each domain
+            foreach(Square d in forwardArray)
+            {
+                //If the domain is in the same row, column, or box
+                if (d.row == row || d.column == col || ((d.row >= beginRow && d.row < beginRow + sN) && (d.column >= beginCol && d.column <
+                    beginCol + sN)))
+                {
+                    //Remove the number from the domain and if succesful add the currentindex to changedindices list for potential undoing
+                    if (forwardArray[currentIndex].variables.Remove(number))
                     {
-                        for(int x = 1; i < N+1; i++)
-                        {
-                            sudoku[i, j] = x;
-                            if (!Violation(i, j))
-                            {
-                                Domain dom = new Domain();
-                                dom.row = i;
-                                dom.column = j;
-                                dom.domainSize++;
-                                dom.variables.Add(x);
-                                forwardcheck.Add(dom);
-                            }
-                        }
-                        sudoku[i, j] = 0;
+                        changedIndices.Add(currentIndex);
+                        forwardArray[currentIndex].domainSize--;
                     }
+
+                    //check if empty domain
+                    if (!forwardArray[currentIndex].variables.Any())
+                    {
+                        foreach(int i in changedIndices)
+                        {
+                            forwardArray[i].variables.Add(number);
+                            forwardArray[i].domainSize++;
+                            forwardArray[i].variables.Sort();
+                            return false;
+                        }
+                    }
+                    currentIndex++;
                 }
             }
-
-            forwardcheck.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
-            forwardArray = forwardcheck.ToArray();
-            row = squaresArray[0].row;
-            col = squaresArray[0].column;
+            sudoku[row, col] = number;
+            return true;
         }
 
-        static void initialise_domainlist()
+        static void initialiseDomainlist()
         {
             List<Square> sortedSquares = new List<Square>();
-            //Add squares with their domain size to the 
+
             for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
@@ -153,31 +170,36 @@ namespace ConsoleApplication1
                         Square sqr = new Square();
                         sqr.row = i;
                         sqr.column = j;
-                        sqr.domainSize = domainSize(i,j);
+                        sqr.variables = new List<int>();
+
+                        for (int x = 1; x < N + 1; x++)
+                        {
+                            sudoku[i, j] = x;
+                            if (!Violation(i, j,sudoku[i,j]))
+                            {
+                                sqr.domainSize++;
+                                if (direction == "fcmcv") sqr.variables.Add(x);
+                            }
+                        }
+
                         sortedSquares.Add(sqr);
+                        sudoku[i, j] = 0;
                     }
                 }
             }
-            sortedSquares.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
-            squaresArray = sortedSquares.ToArray();
+
+            //sortedSquares.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
+            forwardArray = sortedSquares.ToArray();
+            Array.Sort<Square>(squaresArray, (x, y) => x.domainSize.CompareTo(y.domainSize));
+
             row = squaresArray[0].row;
             col = squaresArray[0].column;
-            int lastIndex = squaresArray.Length - 1;
-            endRow = squaresArray[lastIndex].row;
-            endCol = squaresArray[lastIndex].column;
-        }
-        static int domainSize(int row, int col)
-        {
-            int size = 0;
-            for(int i = 1; i <= N; i++)
+            if (direction == "domain-oriented")
             {
-                sudoku[row, col] = i;
-                if (!Violation(row,col)){
-                    size++;
-                }
+                int lastIndex = squaresArray.Length - 1;
+                endRow = squaresArray[lastIndex].row;
+                endCol = squaresArray[lastIndex].column;
             }
-            sudoku[row, col] = 0;
-            return size;
         }
         static bool FoundSolution()
         {
@@ -275,6 +297,18 @@ namespace ConsoleApplication1
                     break;
             }
         }
+        static void undo_number(int row, int col)
+        {
+            int number = sudoku[row, col];
+            sudoku[row, col] = 0;
+            for(int i = 0; i < N; i++)
+            {
+                if (!Violation(row, i,number))
+                {
+                    
+                }
+            }
+        }
         static void BackTrack()
         {
             while (true)
@@ -296,7 +330,7 @@ namespace ConsoleApplication1
                         sudoku[row, col]++;
 
                         //If this doesnt create a violation
-                        if (!Violation(row,col))
+                        if (!Violation(row,col,sudoku[row,col]))
                         {
                             //Move on to the next variable
                             MoveNext();
@@ -324,34 +358,34 @@ namespace ConsoleApplication1
         }
 
         //Check for row, column and box violations
-        static bool Violation(int row, int col)
+        static bool Violation(int row, int col,int number)
         {
-            if ( RowViolation(row,col) || ColViolation(row, col) || BoxViolation(row, col) ) return true;
+            if ( RowViolation(row,col,number) || ColViolation(row, col,number) || BoxViolation(row, col,number) ) return true;
 
             return false;
         }
 
         // Check for violations in a row
-        static bool RowViolation(int row, int col)
+        static bool RowViolation(int row, int col,int number)
         {
             for (int i = 0; i < N; i++)
             {
-                if ( sudoku[row, i] == sudoku[row, col] && i != col ) return true;
+                if ( sudoku[row, i] == number && i != col ) return true;
             }
             return false;
         }
 
         // Check for violations in a column
-        static bool ColViolation(int row, int col)
+        static bool ColViolation(int row, int col,int number)
         {
             for ( int i = 0; i < N; i++ )
-                if ( sudoku[i, col] == sudoku[row, col] && i != row ) return true;
+                if ( sudoku[i, col] == number && i != row ) return true;
 
             return false;
         }
 
         // Check for violations in a sqrt(N) by sqrt(N) box
-        static bool BoxViolation(int row, int col)
+        static bool BoxViolation(int row, int col,int number)
         {
             //Variables to determine begin rows and columns
             int beginRow = 0;
@@ -385,7 +419,7 @@ namespace ConsoleApplication1
             // Check for box violation
             for ( int i = 0; i < sN; i++ )
                 for ( int j = 0; j < sN; j++ )
-                    if ( sudoku[beginRow + i, beginCol + j] == sudoku[row, col] && !( beginRow + i == row && beginCol + j == col )) return true;
+                    if ( sudoku[beginRow + i, beginCol + j] == number && !( beginRow + i == row && beginCol + j == col )) return true;
 
             return false;
         }
