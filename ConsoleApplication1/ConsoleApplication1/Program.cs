@@ -24,6 +24,7 @@ namespace ConsoleApplication1
     class Sudoku_Grid
     {
         public Sudoku_Grid parent;
+        public Sudoku_Grid child;
         public Location[] sorted_on_domainsize;
         public Square[,] sudoku;
         public int currentSquareIndex;
@@ -39,39 +40,72 @@ namespace ConsoleApplication1
         {
             //Copy this grid to make changes
             Sudoku_Grid child = this;
+            child.parent = this;
+            child.currentSquareIndex = 0;
+            child.currentVariableIndex = 0;
+
             //get location of most constraining square
             int row = sorted_on_domainsize[currentSquareIndex].row;
             int col = sorted_on_domainsize[currentSquareIndex].column;
-            //get a variable of the most constraining square
+            //get a variable in the domain of the most constraining square
             int variable = sudoku[row, col].variables[currentVariableIndex];
             //Set the square to this variable
             child.sudoku[row, col].number = variable;
-            MakeConsistent(child, row, col);
+            //if no empty domains
+            if (child.MakeConsistent(row, col))
+            {
+                //TODO: If nothing empty, then make sorted_on_domainsize consistent for child and sort it
+                child.ForwardCheck();
+            }
+            else
+            {
+                moveNext(row, col);
+                ForwardCheck();
+            }
         }
-        void MakeConsistent(Sudoku_Grid grid,int row, int col)
+        public bool MakeConsistent(int row, int col)
         {
-            int number = grid.sudoku[row, col].number;
-            for(int i = 0; i < N; i++)
+            int number = sudoku[row, col].number;
+            //Remove from rows and columns
+            for (int i = 0; i < N; i++)
             {
                 //remove variable from domains in same row
                 if (i != col)
                 {
-                    grid.sudoku[row, i].variables.Remove(number);
+                    sudoku[row, i].variables.Remove(number);
                     //if empty
-                    if (!grid.sudoku[row, i].variables.Any())
+                    if (!sudoku[row, i].variables.Any())
                     {
-                        //move to next index
-                        if (currentVariableIndex < grid.sudoku[row, col].domainSize - 1)
-                            currentVariableIndex++;
-                        else
-                        {
-                            currentVariableIndex = 0;
-                            currentSquareIndex++;
-                        }
+                        return false;
                     }
                 }
-                //remove variable from domains in same column
-                grid.sudoku[i, col].variables.Remove(number);
+                if (i != row)
+                {
+                    //remove variable from domains in same column
+                    sudoku[i, col].variables.Remove(number);
+                    //if empty
+                    if (!sudoku[i, col].variables.Any())
+                    {
+                        return false;
+                    }
+                }
+            }
+            //TODO: Remove from domains in same box and check for empty
+            return true;
+
+        }
+        void moveNext(int row, int col)
+        {
+            //move to next variable in the domain
+            if (currentVariableIndex < sudoku[row, col].domainSize - 1)
+            {
+                currentVariableIndex++;
+            }
+            //or move to the next most constraining square and its domain
+            else
+            {
+                currentVariableIndex = 0;
+                currentSquareIndex++;
             }
         }
     }
@@ -86,8 +120,8 @@ namespace ConsoleApplication1
         static bool backwards = false;
         //const string direction = "left-down"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
-        //const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
-        const string direction = "fcmcv";
+        const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
+        //const string direction = "fcmcv";
         static int row = 0;
         static int col = 0;
         static bool foundsolution = false;
@@ -108,8 +142,6 @@ namespace ConsoleApplication1
                 //Make the array to store the sudoku
                 sudoku = new int[N, N];
                 unchangable = new bool[N, N];
-                
-                
 
                 //Store lines
                 for (int i = 0; i < N; i++)
@@ -134,9 +166,6 @@ namespace ConsoleApplication1
 
                 BackTrack();
             }
-        }
-        static void fcMCV()
-        {
         }
         static void initialise_forwardchecking()
         {
