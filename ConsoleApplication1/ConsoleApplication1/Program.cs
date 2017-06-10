@@ -54,8 +54,8 @@ namespace ConsoleApplication1
         public Sudoku_Grid Clone(Sudoku_Grid other)
         {
             Sudoku_Grid returnClone = new Sudoku_Grid();
-            returnClone.currentSquareIndex = other.currentSquareIndex;
-            returnClone.currentVariableIndex = other.currentVariableIndex;
+            returnClone.currentSquareIndex = 0;
+            returnClone.currentVariableIndex = 0;
             returnClone.sorted_on_domainsize = new Location[other.sorted_on_domainsize.Length];
 
             for (int i = 0; i < other.sorted_on_domainsize.Length; i++)
@@ -90,18 +90,16 @@ namespace ConsoleApplication1
 
         public void ForwardCheck()
         {
-            PrintSolution();
+            //PrintSolution();
             //If solution found
             if (sorted_on_domainsize[currentSquareIndex].size > 800)
             {
                 PrintSolution();
+                return;
             }
             //Copy this grid to make changes
             child = new Sudoku_Grid();
             child = Clone(this);
-            Console.WriteLine(sudoku[0, 0].number);
-            child.sudoku[0, 0].number++;
-            Console.WriteLine(sudoku[0, 0].number);
             //child.copyGrid(this);
             //child.sorted_on_domainsize = sorted_on_domainsize;
 
@@ -113,15 +111,17 @@ namespace ConsoleApplication1
             {
                 Console.WriteLine("[{0},{1}] size: {2}", l.row, l.column, l.size);
             }
-            foreach(int n in sudoku[6, 3].variables)
+            /*-----------------DEBUGGER---------------------
+            foreach(int n in sudoku[row, col].variables)
             {
                 Console.WriteLine(n);
             }
-            Console.WriteLine(currentSquareIndex);
-            Console.WriteLine(currentVariableIndex);
-            Console.WriteLine(row.ToString() + col);
+            Console.WriteLine("currentSquareIndex " +currentSquareIndex);
+            Console.WriteLine("currentVariableIndex "+currentVariableIndex);
+            Console.WriteLine("current square: [{0},{1}]",row,col);
+            -----------------------------------------------*/
             int variable = sudoku[row, col].variables[currentVariableIndex];
-            Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
+            //Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
             //Set the square to this variable
             child.sudoku[row, col].number = variable;
             //if no empty domains
@@ -129,14 +129,14 @@ namespace ConsoleApplication1
             {
                 child.MakeSorted();
                 child.ForwardCheck();
-                Console.WriteLine("forward!");
+              //  Console.WriteLine("forward!");
             }
             else
             {
-                Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
-                Console.WriteLine("undoandmovenext");
+                //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
+               // Console.WriteLine("undoandmovenext");
                 UndoAndMoveNext(row, col);
-                Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
+                //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
                 ForwardCheck();
             }
         }
@@ -156,7 +156,7 @@ namespace ConsoleApplication1
                         //if empty
                         if (sudoku[row, i].domainSize == 0)
                         {
-                            Console.WriteLine("deleted {0} from [{1},{2}], new domainsize is: {3}", number, row, i, sudoku[row, i].domainSize);
+                           // Console.WriteLine("deleted {0} from [{1},{2}], new domainsize is: {3}", number, row, i, sudoku[row, i].domainSize);
                             return false;
                         }
                     }
@@ -299,7 +299,6 @@ namespace ConsoleApplication1
                 if (direction == "fcmcv")
                 {
                     initialise_forwardchecking();
-                    currentGrid.ForwardCheck();
                 }
                 else
                 {
@@ -345,6 +344,7 @@ namespace ConsoleApplication1
             }
             currentGrid.sorted_on_domainsize = sortedLocations.ToArray();
             Array.Sort(currentGrid.sorted_on_domainsize, (x, y) => x.size.CompareTo(y.size));
+            currentGrid.ForwardCheck();
         }
         static void initialise_domainlist()
         {
