@@ -26,6 +26,7 @@ namespace ConsoleApplication1
        // public Sudoku_Grid child;
         public Location[] sorted_on_domainsize;
         public Square[,] sudoku;
+        Sudoku_Grid child;
         public int currentSquareIndex;
         public int currentVariableIndex;
         int N;
@@ -38,22 +39,31 @@ namespace ConsoleApplication1
         }
         public void ForwardCheck()
         {
-            //If solution found 
+            PrintSolution();
+            //If solution found
             if (sorted_on_domainsize[currentSquareIndex].size > 800)
             {
                 PrintSolution();
             }
             //Copy this grid to make changes
-            Sudoku_Grid child = new Sudoku_Grid();
-            child = this;
-            child.currentSquareIndex = 0;
-            child.currentVariableIndex = 0;
+            child = new Sudoku_Grid();
+            child.sudoku = sudoku;
+            child.sorted_on_domainsize = sorted_on_domainsize;
 
             //get location of most constraining square
             int row = sorted_on_domainsize[currentSquareIndex].row;
             int col = sorted_on_domainsize[currentSquareIndex].column;
             //get a variable in the domain of the most constraining square
+            foreach(Location l in sorted_on_domainsize)
+            {
+                Console.WriteLine("[{0},{1}] size: {2}", l.row, l.column, l.size);
+            }
+            foreach(int n in sudoku[6, 3].variables)
+            {
+                Console.WriteLine(n);
+            }
             int variable = sudoku[row, col].variables[currentVariableIndex];
+            Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
             //Set the square to this variable
             child.sudoku[row, col].number = variable;
             //if no empty domains
@@ -61,10 +71,14 @@ namespace ConsoleApplication1
             {
                 child.MakeSorted();
                 child.ForwardCheck();
+                Console.WriteLine("forward!");
             }
             else
             {
+                Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
+                Console.WriteLine("undoandmovenext");
                 UndoAndMoveNext(row, col);
+                Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
                 ForwardCheck();
             }
         }
@@ -84,6 +98,7 @@ namespace ConsoleApplication1
                         //if empty
                         if (sudoku[row, i].domainSize == 0)
                         {
+                            Console.WriteLine("deleted {0} from [{1},{2}], new domainsize is: {3}", number, row, i, sudoku[row, i].domainSize);
                             return false;
                         }
                     }
@@ -102,7 +117,27 @@ namespace ConsoleApplication1
                     }
                 }
             }
-            //TODO: Remove from domains in same box and check for empty
+            //Variables to determine begin rows and columns
+            int beginRow = Program.GetBeginRowOrColumn(row);
+            int beginCol = Program.GetBeginRowOrColumn(col);
+            int sN = (int)Math.Sqrt(N);
+
+            //Remove from domains in the same box
+            for (int i = 0; i < sN; i++)
+                for (int j = 0; j < sN; j++)
+                {
+                    if ((beginRow + i != row) && (beginCol + j != col)&&!Program.unchangable[beginRow + i,beginCol+j])
+                    {
+                        if (sudoku[beginRow + i, beginCol + j].variables.Remove(number))
+                        {
+                            sudoku[beginRow + i, beginCol + j].domainSize--;
+                            if (sudoku[beginRow + i, beginCol + j].domainSize == 0)
+                            {
+                                return false;
+                            }
+                        }
+                    }
+                }
             sudoku[row, col].domainSize = 900;
             return true;
 
@@ -465,40 +500,34 @@ namespace ConsoleApplication1
         static bool BoxViolation(int row, int col)
         {
             //Variables to determine begin rows and columns
-            int beginRow = 0;
-            int beginCol = 0;
+            int beginRow = GetBeginRowOrColumn(row);
+            int beginCol = GetBeginRowOrColumn(col);
             int sN = (int)Math.Sqrt(N);
-
-            //Determine which row we are to get the begin row
-            int restRow = 0;
-            while ( restRow != sN )
-            {
-                if ( row % sN == restRow )
-                {
-                    beginRow = row - restRow;
-                    break;
-                }
-                restRow++;
-            }
-
-            //Determine which column we are to get the begin column
-            int restCol = 0;
-            while ( restCol != sN )
-            {
-                if ( col % sN == restCol )
-                {
-                    beginCol = col - restCol;
-                    break;
-                }
-                restCol++;
-            }
-
             // Check for box violation
             for ( int i = 0; i < sN; i++ )
                 for ( int j = 0; j < sN; j++ )
                     if ( sudoku[beginRow + i, beginCol + j] == sudoku[row, col] && !( beginRow + i == row && beginCol + j == col )) return true;
 
             return false;
+        }
+        static public int GetBeginRowOrColumn(int row_or_col)
+        {
+            //Variables to determine begin rows and columns
+            int beginRowOrCol = 0;
+            int sN = (int)Math.Sqrt(N);
+
+            //Determine which row we are to get the begin row
+            int restRowOrCol = 0;
+            while (restRowOrCol != sN)
+            {
+                if (row_or_col % sN == restRowOrCol)
+                {
+                    beginRowOrCol = row_or_col - restRowOrCol;
+                    break;
+                }
+                restRowOrCol++;
+            }
+            return beginRowOrCol;
         }
     }
 }
