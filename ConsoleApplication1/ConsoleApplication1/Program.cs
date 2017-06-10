@@ -1,26 +1,38 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ConsoleApplication1
 {
-    struct Square
+    class Square
     {
        public int row;
        public int column;
        public int number;
        public int domainSize;
        public List<int> variables;
+
+        public Square()
+        {
+        }
     }
 
-    struct Location
+    class Location
     {
         public int row;
         public int column;
         public int size;
+
+        public Location()
+        {
+        }
     }
+
     class Sudoku_Grid
     {
        // public Sudoku_Grid child;
@@ -30,6 +42,7 @@ namespace ConsoleApplication1
         public int currentSquareIndex;
         public int currentVariableIndex;
         int N;
+
         public Sudoku_Grid()
         {
             currentSquareIndex = 0;
@@ -37,6 +50,44 @@ namespace ConsoleApplication1
             N = Program.N;
             sudoku = new Square[N, N];
         }
+
+        public Sudoku_Grid Clone(Sudoku_Grid other)
+        {
+            Sudoku_Grid returnClone = new Sudoku_Grid();
+            returnClone.currentSquareIndex = other.currentSquareIndex;
+            returnClone.currentVariableIndex = other.currentVariableIndex;
+            returnClone.sorted_on_domainsize = new Location[other.sorted_on_domainsize.Length];
+
+            for (int i = 0; i < other.sorted_on_domainsize.Length; i++)
+            {
+                Location temp = new Location();
+                temp.row = other.sorted_on_domainsize[i].row;
+                temp.column = sorted_on_domainsize[i].column;
+                temp.size = other.sorted_on_domainsize[i].size;
+                returnClone.sorted_on_domainsize[i] = temp;
+            }
+            
+            for (int i = 0; i < N; i++)
+            {
+                for (int j = 0; j < N; j++)
+                {
+                    Square temp = new Square();
+                    temp.variables = new List<int>();
+                    if (other.sudoku[i, j].variables != null)
+                    {
+                        foreach (int x in other.sudoku[i, j].variables) temp.variables.Add(x);
+                    }
+                    temp.row = other.sudoku[i, j].row;
+                    temp.column = other.sudoku[i, j].column;
+                    temp.number = other.sudoku[i, j].number;
+                    temp.domainSize = other.sudoku[i, j].domainSize;
+                    returnClone.sudoku[i, j] = temp;
+                }
+            }
+
+            return returnClone;
+        }
+
         public void ForwardCheck()
         {
             PrintSolution();
@@ -47,8 +98,12 @@ namespace ConsoleApplication1
             }
             //Copy this grid to make changes
             child = new Sudoku_Grid();
-            child.sudoku = sudoku;
-            child.sorted_on_domainsize = sorted_on_domainsize;
+            child = Clone(this);
+            Console.WriteLine(sudoku[0, 0].number);
+            child.sudoku[0, 0].number++;
+            Console.WriteLine(sudoku[0, 0].number);
+            //child.copyGrid(this);
+            //child.sorted_on_domainsize = sorted_on_domainsize;
 
             //get location of most constraining square
             int row = sorted_on_domainsize[currentSquareIndex].row;
@@ -184,6 +239,7 @@ namespace ConsoleApplication1
             Console.WriteLine("----------------------------");
             Console.WriteLine("found solution");
         }
+
     }
     class Program
     {
@@ -260,6 +316,7 @@ namespace ConsoleApplication1
             {
                 for (int j = 0; j < N; j++)
                 {
+                    currentGrid.sudoku[i, j] = new Square();
                     currentGrid.sudoku[i, j].row = i;
                     currentGrid.sudoku[i, j].column = j;
                     currentGrid.sudoku[i, j].number = sudoku[i, j];
