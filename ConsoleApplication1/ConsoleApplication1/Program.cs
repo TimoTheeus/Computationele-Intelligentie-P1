@@ -62,6 +62,9 @@ namespace ConsoleApplication1
             {
                 Console.WriteLine(n);
             }
+            Console.WriteLine(currentSquareIndex);
+            Console.WriteLine(currentVariableIndex);
+            Console.WriteLine(row.ToString() + col);
             int variable = sudoku[row, col].variables[currentVariableIndex];
             Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
             //Set the square to this variable
