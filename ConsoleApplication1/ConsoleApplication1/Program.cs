@@ -88,7 +88,7 @@ namespace ConsoleApplication1
 
         public void ForwardCheck()
         {
-            //PrintSolution();
+            PrintSolution();
             //If solution found
             if (sorted_on_domainsize[0].size > 800)
             {
@@ -108,8 +108,8 @@ namespace ConsoleApplication1
             //get a variable in the domain of the most constraining square
            // foreach(Location l in sorted_on_domainsize)
           //  {
-           //     Console.WriteLine("[{0},{1}] size: {2}", l.row, l.column, l.size);
-           // }
+              //  Console.WriteLine("[{0},{1}] size: {2}", l.row, l.column, l.size);
+          // }
             /*-----------------DEBUGGER---------------------
             foreach(int n in sudoku[row, col].variables)
             {
@@ -119,24 +119,32 @@ namespace ConsoleApplication1
             Console.WriteLine("currentVariableIndex "+currentVariableIndex);
             Console.WriteLine("current square: [{0},{1}]",row,col);
             -----------------------------------------------*/
-            int variable = sudoku[row, col].variables[currentVariableIndex];
-            //Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
-            //Set the square to this variable
-            child.sudoku[row, col].number = variable;
-            //if no empty domains
-            if (child.MakeConsistent(row, col))
+            if (currentVariableIndex >= sudoku[row, col].variables.Count)
             {
-                child.MakeSorted();
-                child.ForwardCheck();
-              //  Console.WriteLine("forward!");
+                parent.currentVariableIndex++;
+                parent.ForwardCheck();
             }
             else
             {
-                //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
-               // Console.WriteLine("undoandmovenext");
-                UndoAndMoveNext(row, col);
-                //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
-                ForwardCheck();
+                int variable = sudoku[row, col].variables[currentVariableIndex];
+                //Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
+                //Set the square to this variable
+                child.sudoku[row, col].number = variable;
+                //if no empty domains
+                if (child.MakeConsistent(row, col))
+                {
+                    child.MakeSorted();
+                    child.ForwardCheck();
+                    //  Console.WriteLine("forward!");
+                }
+                else
+                {
+                    //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
+                    // Console.WriteLine("undoandmovenext");
+                    currentVariableIndex++;
+                    //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
+                    ForwardCheck();
+                }
             }
         }
         bool MakeConsistent(int row, int col)
@@ -208,19 +216,6 @@ namespace ConsoleApplication1
             }
             //Sort
             Array.Sort(sorted_on_domainsize, (x, y) => x.size.CompareTo(y.size));
-        }
-        void UndoAndMoveNext(int row, int col)
-        {
-            //move to next variable in the domain
-            if (currentVariableIndex < sudoku[row, col].domainSize - 1)
-            {
-                currentVariableIndex++;
-            }
-            //or move to the next most constraining square and its domain
-            else
-            {
-                parent.UndoAndMoveNext(row, col);
-            }
         }
         void PrintSolution()
         {
