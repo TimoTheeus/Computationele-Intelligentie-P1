@@ -23,8 +23,7 @@ namespace ConsoleApplication1
     }
     class Sudoku_Grid
     {
-        public Sudoku_Grid parent;
-        public Sudoku_Grid child;
+       // public Sudoku_Grid child;
         public Location[] sorted_on_domainsize;
         public Square[,] sudoku;
         public int currentSquareIndex;
@@ -35,12 +34,18 @@ namespace ConsoleApplication1
             currentSquareIndex = 0;
             currentVariableIndex = 0;
             N = Program.N;
+            sudoku = new Square[N, N];
         }
         public void ForwardCheck()
         {
+            //If solution found 
+            if (sorted_on_domainsize[currentSquareIndex].size > 800)
+            {
+                PrintSolution();
+            }
             //Copy this grid to make changes
-            Sudoku_Grid child = this;
-            child.parent = this;
+            Sudoku_Grid child = new Sudoku_Grid();
+            child = this;
             child.currentSquareIndex = 0;
             child.currentVariableIndex = 0;
 
@@ -54,47 +59,65 @@ namespace ConsoleApplication1
             //if no empty domains
             if (child.MakeConsistent(row, col))
             {
-                //TODO: If nothing empty, then make sorted_on_domainsize consistent for child and sort it
+                child.MakeSorted();
                 child.ForwardCheck();
             }
             else
             {
-                moveNext(row, col);
+                UndoAndMoveNext(row, col);
                 ForwardCheck();
             }
         }
-        public bool MakeConsistent(int row, int col)
+        bool MakeConsistent(int row, int col)
         {
             int number = sudoku[row, col].number;
             //Remove from rows and columns
             for (int i = 0; i < N; i++)
             {
                 //remove variable from domains in same row
-                if (i != col)
+                if (i != col&&!Program.unchangable[row,i])
                 {
-                    sudoku[row, i].variables.Remove(number);
-                    //if empty
-                    if (!sudoku[row, i].variables.Any())
+                    //If the number was succesfully removed, decrease domainsize by 1
+                    if (sudoku[row, i].variables.Remove(number))
                     {
-                        return false;
+                        sudoku[row, i].domainSize--;
+                        //if empty
+                        if (sudoku[row, i].domainSize == 0)
+                        {
+                            return false;
+                        }
                     }
                 }
-                if (i != row)
+                if (i != row && !Program.unchangable[i, col])
                 {
-                    //remove variable from domains in same column
-                    sudoku[i, col].variables.Remove(number);
-                    //if empty
-                    if (!sudoku[i, col].variables.Any())
+                    //If the number was succesfully removed, decrease domainsize by 1
+                    if (sudoku[i, col].variables.Remove(number))
                     {
-                        return false;
+                        sudoku[i, col].domainSize--;
+                        //if empty
+                        if (sudoku[i,col].domainSize == 0)
+                        {
+                            return false;
+                        }
                     }
                 }
             }
             //TODO: Remove from domains in same box and check for empty
+            sudoku[row, col].domainSize = 900;
             return true;
 
         }
-        void moveNext(int row, int col)
+        void MakeSorted()
+        {
+            //Change their domainsizes
+            for(int i = 0; i < sorted_on_domainsize.Length; i++) { 
+
+                sorted_on_domainsize[i].size = sudoku[sorted_on_domainsize[i].row, sorted_on_domainsize[i].column].domainSize;
+            }
+            //Sort
+            Array.Sort(sorted_on_domainsize, (x, y) => x.size.CompareTo(y.size));
+        }
+        void UndoAndMoveNext(int row, int col)
         {
             //move to next variable in the domain
             if (currentVariableIndex < sudoku[row, col].domainSize - 1)
@@ -108,6 +131,21 @@ namespace ConsoleApplication1
                 currentSquareIndex++;
             }
         }
+        void PrintSolution()
+        {
+            Console.WriteLine("----------------------------");
+            for (int i = 0; i < N; i++)
+            {
+                string line = "";
+                for (int j = 0; j < N; j++)
+                {
+                    line += sudoku[i, j].number + " ";
+                }
+                Console.WriteLine(line);
+            }
+            Console.WriteLine("----------------------------");
+            Console.WriteLine("found solution");
+        }
     }
     class Program
     {
@@ -115,13 +153,13 @@ namespace ConsoleApplication1
         static public int N;
         //Array to store sudoku puzzle in
         static public int[,] sudoku;
-        static bool[,] unchangable;
+        static public bool[,] unchangable;
         static Sudoku_Grid currentGrid;
         static bool backwards = false;
         //const string direction = "left-down"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
-        const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
-        //const string direction = "fcmcv";
+        //const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
+        const string direction = "fcmcv";
         static int row = 0;
         static int col = 0;
         static bool foundsolution = false;
@@ -160,11 +198,19 @@ namespace ConsoleApplication1
                     }
                 }
 
-                if ( direction == "domain-oriented") initialise_domainlist(); 
+                if (direction == "domain-oriented") initialise_domainlist();
                 else if (direction == "right-up") { row = N - 1; col = N - 1; endRow = 0; endCol = 0; }
-                else if (direction == "left-down"){ endRow = N - 1; endCol = N - 1; }
+                else if (direction == "left-down") { endRow = N - 1; endCol = N - 1; }
 
-                BackTrack();
+                if (direction == "fcmcv")
+                {
+                    initialise_forwardchecking();
+                    currentGrid.ForwardCheck();
+                }
+                else
+                {
+                    BackTrack();
+                }
             }
         }
         static void initialise_forwardchecking()
@@ -181,17 +227,18 @@ namespace ConsoleApplication1
                     currentGrid.sudoku[i, j].number = sudoku[i, j];
                     if (!unchangable[i, j])
                     {
+                        currentGrid.sudoku[i, j].variables = new List<int>();
                         int size = 0;
                         for (int k = 1; k <= N; k++)
                         {
-                            sudoku[row, col] = k;
-                            if (!Violation(row, col))
+                            sudoku[i, j] = k;
+                            if (!Violation(i, j))
                             {
                                 currentGrid.sudoku[i, j].variables.Add(k);
                                 size++;
                             }
                         }
-                        sudoku[row, col] = 0;
+                        sudoku[i, j] = 0;
                         currentGrid.sudoku[i, j].domainSize = size;
                         Location l = new Location();
                         l.row = i;
@@ -375,10 +422,10 @@ namespace ConsoleApplication1
         //Print the sudoku
         static void print_sudoku()
         {
-            for(int i =0; i < sudoku.GetLength(1);i++)
+            for(int i =0; i < N;i++)
             {
                 string line = "";
-                for ( int j = 0; j < sudoku.GetLength(0); j++ )
+                for ( int j = 0; j <N; j++ )
                 {
                     line += sudoku[i,j] + " ";
                 }
