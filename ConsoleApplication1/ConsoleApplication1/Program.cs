@@ -39,13 +39,12 @@ namespace ConsoleApplication1
         public Location[] sorted_on_domainsize;
         public Square[,] sudoku;
         Sudoku_Grid child;
-        public int currentSquareIndex;
+        Sudoku_Grid parent;
         public int currentVariableIndex;
         int N;
 
         public Sudoku_Grid()
         {
-            currentSquareIndex = 0;
             currentVariableIndex = 0;
             N = Program.N;
             sudoku = new Square[N, N];
@@ -54,7 +53,6 @@ namespace ConsoleApplication1
         public Sudoku_Grid Clone(Sudoku_Grid other)
         {
             Sudoku_Grid returnClone = new Sudoku_Grid();
-            returnClone.currentSquareIndex = 0;
             returnClone.currentVariableIndex = 0;
             returnClone.sorted_on_domainsize = new Location[other.sorted_on_domainsize.Length];
 
@@ -92,7 +90,7 @@ namespace ConsoleApplication1
         {
             //PrintSolution();
             //If solution found
-            if (sorted_on_domainsize[currentSquareIndex].size > 800)
+            if (sorted_on_domainsize[0].size > 800)
             {
                 PrintSolution();
                 return;
@@ -100,17 +98,18 @@ namespace ConsoleApplication1
             //Copy this grid to make changes
             child = new Sudoku_Grid();
             child = Clone(this);
+            child.parent = this;
             //child.copyGrid(this);
             //child.sorted_on_domainsize = sorted_on_domainsize;
 
             //get location of most constraining square
-            int row = sorted_on_domainsize[currentSquareIndex].row;
-            int col = sorted_on_domainsize[currentSquareIndex].column;
+            int row = sorted_on_domainsize[0].row;
+            int col = sorted_on_domainsize[0].column;
             //get a variable in the domain of the most constraining square
-            foreach(Location l in sorted_on_domainsize)
-            {
-                Console.WriteLine("[{0},{1}] size: {2}", l.row, l.column, l.size);
-            }
+           // foreach(Location l in sorted_on_domainsize)
+          //  {
+           //     Console.WriteLine("[{0},{1}] size: {2}", l.row, l.column, l.size);
+           // }
             /*-----------------DEBUGGER---------------------
             foreach(int n in sudoku[row, col].variables)
             {
@@ -220,8 +219,7 @@ namespace ConsoleApplication1
             //or move to the next most constraining square and its domain
             else
             {
-                currentVariableIndex = 0;
-                currentSquareIndex++;
+                parent.UndoAndMoveNext(row, col);
             }
         }
         void PrintSolution()
