@@ -9,6 +9,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 namespace ConsoleApplication1
 {
+    // A square variable in a sudoku grid
     class Square
     {
        public int row;
@@ -22,6 +23,7 @@ namespace ConsoleApplication1
         }
     }
 
+    // Location and size of a domain for a variable
     class Location
     {
         public int row;
@@ -33,10 +35,9 @@ namespace ConsoleApplication1
         }
     }
 
+    // Sudoku grid
     class Sudoku_Grid
     {
-       // public Sudoku_Grid child;
-        //public Location[] sorted_on_domainsize;
         public Square[,] sudoku;
         Sudoku_Grid child;
         Sudoku_Grid parent;
@@ -51,35 +52,32 @@ namespace ConsoleApplication1
             sudoku = new Square[N, N];
         }
 
+        // Method for cloning a sudoku grid
         public Sudoku_Grid Clone(Sudoku_Grid other)
         {
+            // Make a new grid
             Sudoku_Grid returnClone = new Sudoku_Grid();
             returnClone.currentVariableIndex = 0;
-            //returnClone.sorted_on_domainsize = new Location[other.sorted_on_domainsize.Length];
-
-           // for (int i = 0; i < other.sorted_on_domainsize.Length; i++)
-           // {
-            //    Location temp = new Location();
-           //     temp.row = other.sorted_on_domainsize[i].row;
-           //     temp.column = sorted_on_domainsize[i].column;
-            //    temp.size = other.sorted_on_domainsize[i].size;
-           //     returnClone.sorted_on_domainsize[i] = temp;
-           // }
             
+            // Go through the sudoku grid that needs to be copied
             for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
                 {
+                    // Make a new square, because we don't want to point to the old square
                     Square temp = new Square();
                     temp.variables = new List<int>();
+                    // Add all the variables of the domain in the variables list of the new square
                     if (other.sudoku[i, j].variables != null)
                     {
                         foreach (int x in other.sudoku[i, j].variables) temp.variables.Add(x);
                     }
+                    // Copy all the other membervariables
                     temp.row = other.sudoku[i, j].row;
                     temp.column = other.sudoku[i, j].column;
                     temp.number = other.sudoku[i, j].number;
                     temp.domainSize = other.sudoku[i, j].domainSize;
+                    // Assign the square to the location in the grid
                     returnClone.sudoku[i, j] = temp;
                 }
             }
@@ -87,14 +85,17 @@ namespace ConsoleApplication1
             return returnClone;
         }
 
+        // Recursive backtracking method that uses forward checking with the most constraining variable
         public void ForwardCheck()
         {
-            //PrintSolution();
-            //If solution found
+            // Check if the most constraining variable is empty
             if (MCV == null)
             {
+                // Create a new location with a high domain size
                 Location l = new Location();
                 l.size = 900;
+
+                //Check for each square in the sudoku which square has the lowest domainsize
                 foreach (Square s in sudoku)
                 {
                     if (!Program.unchangable[s.row, s.column])
@@ -109,65 +110,58 @@ namespace ConsoleApplication1
                         }
                     }
                 }
+                // Assign the location to the most contraining variable
                 MCV = l;
             }
+
+            // If the most constraining variable has a size of 900, the sudoku is solved and print the solution
             if (MCV.size > 800)
             {
-                PrintSolution();
+                //PrintSolution();
+                Program.sudokufc = sudoku;
+                Program.print_sudoku();
                 return;
             }
-            //Copy this grid to make changes
+
+            // Copy this grid to make changes in the child
             child = new Sudoku_Grid();
             child = Clone(this);
             child.parent = this;
-            //child.copyGrid(this);
-            //child.sorted_on_domainsize = sorted_on_domainsize;
-            //get location of most constraining square
+
+            // Get location of most constraining square
             int row = MCV.row;
             int col = MCV.column;
-            //get a variable in the domain of the most constraining square
-           // foreach(Location l in sorted_on_domainsize)
-          //  {
-              //  Console.WriteLine("[{0},{1}] size: {2}", l.row, l.column, l.size);
-          // }
-            /*-----------------DEBUGGER---------------------
-            foreach(int n in sudoku[row, col].variables)
-            {
-                Console.WriteLine(n);
-            }
-            Console.WriteLine("currentSquareIndex " +currentSquareIndex);
-            Console.WriteLine("currentVariableIndex "+currentVariableIndex);
-            Console.WriteLine("current square: [{0},{1}]",row,col);
-            -----------------------------------------------*/
+
+            // Check if index has exceeded the amount of variables there are
             if (currentVariableIndex < sudoku[row, col].variables.Count)
             {
                 
                 int variable = sudoku[row, col].variables[currentVariableIndex];
-                //Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
-                //Set the square to this variable
+                // Set the square to this variable
                 child.sudoku[row, col].number = variable;
-                //if no empty domains
+
+                // If there are no empty domains move next with the child
                 if (child.MakeConsistent(row, col))
                 {
                     
                     child.ForwardCheck();
-                    //  Console.WriteLine("forward!");
                 }
+                // Else increase the variable index to try the next possible variable
                 else
                 {
-                    //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
-                    // Console.WriteLine("undoandmovenext");
                     currentVariableIndex++;
-                    //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
                     ForwardCheck();
                 }
             }
+            // If it has exceeded the amount of variables go back to the parent
             else
             {
                 parent.currentVariableIndex++;
                 parent.ForwardCheck();
             }
         }
+
+        // Try to make the grid consistent and return a bool
         bool MakeConsistent(int row, int col)
         {
             int number = sudoku[row, col].number;
@@ -195,7 +189,7 @@ namespace ConsoleApplication1
                     if (sudoku[i, col].variables.Remove(number))
                     {
                         sudoku[i, col].domainSize--;
-                        //if empty
+                        // If empty
                         if (sudoku[i,col].domainSize == 0)
                         {
                             return false;
@@ -203,12 +197,12 @@ namespace ConsoleApplication1
                     }
                 }
             }
-            //Variables to determine begin rows and columns
+            // Variables to determine begin rows and columns
             int beginRow = Program.GetBeginRowOrColumn(row);
             int beginCol = Program.GetBeginRowOrColumn(col);
             int sN = (int)Math.Sqrt(N);
 
-            //Remove from domains in the same box
+            // Remove from domains in the same box
             for (int i = 0; i < sN; i++)
                 for (int j = 0; j < sN; j++)
                 {
@@ -224,46 +218,33 @@ namespace ConsoleApplication1
                         }
                     }
                 }
+            // Set domain size to 900 so that it won't be the most constraining variable in the MCV method
             sudoku[row, col].domainSize = 900;
             return true;
 
         }
-       
-        void PrintSolution()
-        {
-            Console.WriteLine("----------------------------");
-            for (int i = 0; i < N; i++)
-            {
-                string line = "";
-                for (int j = 0; j < N; j++)
-                {
-                    line += sudoku[i, j].number + " ";
-                }
-                Console.WriteLine(line);
-            }
-            Console.WriteLine("----------------------------");
-            Console.WriteLine("found solution");
-        }
-
     }
+
     class Program
     {
-        //Variables
-        static public int N;
-        //Array to store sudoku puzzle in
-        static public int[,] sudoku;
-        static public bool[,] unchangable;
-        static Sudoku_Grid currentGrid;
-        static bool backwards = false;
+        // Choose which algorithm
         //const string direction = "left-down"; //Method 1 : left to right and downwards
         //const string direction = "right-up"; //Method 2 : right to left and upwards
         //const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
-        const string direction = "fcmcv";
+        const string direction = "fcmcv"; // Method 4 : forward checking based on the most constraining variable
+        
+        // Variables
+        static public int N;
+        static public int[,] sudoku;
+        static public Square[,] sudokufc;
+        static public bool[,] unchangable;
+        static Square[] squaresArray;
+        static Sudoku_Grid currentGrid;
+        static bool foundsolution = false;
+        static bool backwards = false;
+        static int current_arrayindex = 0;
         static int row = 0;
         static int col = 0;
-        static bool foundsolution = false;
-        static Square[] squaresArray;
-        static int current_arrayindex = 0;
         static int endRow;
         static int endCol;
 
@@ -271,24 +252,24 @@ namespace ConsoleApplication1
         {
             while (true)
             {
-                //Initialise sudoku puzzle
-                //Get a line of numbers
+                // Initialise sudoku puzzle
+                // Get a line of numbers
                 string[] line = Console.ReadLine().Split(' ');
-                //Determine sudoku puzzle size
+                // Determine sudoku puzzle size
                 N = line.Length;
-                //Make the array to store the sudoku
+                // Make the array to store the sudoku
                 sudoku = new int[N, N];
                 unchangable = new bool[N, N];
 
-                //Store lines
+                // Store lines
                 for (int i = 0; i < N; i++)
                 {
-                    //Get the numbers in a line
+                    // Get the numbers in a line
                     if (i != 0)
                     {
                         line = Console.ReadLine().Split(' ');
                     }
-                    //Store numbers in sudoku array
+                    // Store numbers in sudoku array
                     for (int j = 0; j < N; j++)
                     {
                         int number = int.Parse(line[j]);
@@ -297,6 +278,7 @@ namespace ConsoleApplication1
                     }
                 }
 
+                // Check which algorithm to execute
                 if (direction == "domain-oriented") initialise_domainlist();
                 else if (direction == "right-up") { row = N - 1; col = N - 1; endRow = 0; endCol = 0; }
                 else if (direction == "left-down") { endRow = N - 1; endCol = N - 1; }
@@ -311,11 +293,13 @@ namespace ConsoleApplication1
                 }
             }
         }
+
+        // Initialise the forward checking algorithm
         static void initialise_forwardchecking()
         {
+            // Make a new grid
             currentGrid = new Sudoku_Grid();
-            List<Location> sortedLocations = new List<Location>();
-            //Add squares with their domain size to the 
+            // Add squares to the grid with their number, row and column
             for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
@@ -324,6 +308,7 @@ namespace ConsoleApplication1
                     currentGrid.sudoku[i, j].row = i;
                     currentGrid.sudoku[i, j].column = j;
                     currentGrid.sudoku[i, j].number = sudoku[i, j];
+                    // Make a domain list of all the possible numbers a square can have if it is changeable
                     if (!unchangable[i, j])
                     {
                         currentGrid.sudoku[i, j].variables = new List<int>();
@@ -337,22 +322,20 @@ namespace ConsoleApplication1
                                 size++;
                             }
                         }
+                        // Reset the value
                         sudoku[i, j] = 0;
                         currentGrid.sudoku[i, j].domainSize = size;
-                        Location l = new Location();
-                        l.row = i;
-                        l.column = j;
-                        l.size = size;
-                        sortedLocations.Add(l);
                     }
                 }
             }
             currentGrid.ForwardCheck();
         }
+
+        // Initialse the backtrack on domain size algorithm
         static void initialise_domainlist()
         {
             List<Square> sortedSquares = new List<Square>();
-            //Add squares with their domain size to the 
+            //Add squares with their domain size to the list
             for (int i = 0; i < N; i++)
             {
                 for (int j = 0; j < N; j++)
@@ -367,27 +350,38 @@ namespace ConsoleApplication1
                     }
                 }
             }
+            // Sort the squares on domain size and convert to an array
             sortedSquares.Sort((d1, d2) => d1.domainSize.CompareTo(d2.domainSize));
             squaresArray = sortedSquares.ToArray();
+            // Set the row and column to square with the lowest domain size
             row = squaresArray[0].row;
             col = squaresArray[0].column;
+            // Set the last row and column to the last index of the array
             int lastIndex = squaresArray.Length - 1;
             endRow = squaresArray[lastIndex].row;
             endCol = squaresArray[lastIndex].column;
         }
+
+        // Method to determine domain size of a square
         static int domainSize(int row, int col)
         {
+            // Set size to 0
             int size = 0;
+            // Check for every possible number if there is a violation
             for(int i = 1; i <= N; i++)
             {
                 sudoku[row, col] = i;
+                // If the number can be set increase the size
                 if (!Violation(row,col)){
                     size++;
                 }
             }
+            // Set the square back to it's original number
             sudoku[row, col] = 0;
             return size;
         }
+
+        // Check to see if a solution is found
         static bool FoundSolution()
         {
             if(row == endRow && col == endCol)
@@ -397,76 +391,164 @@ namespace ConsoleApplication1
             }
             return false;
         }
+
+        // Print solution and set the found solution to true;
         static void setandprint_found_solution()
         {
-            Console.WriteLine("----------------------------");
             print_sudoku();
             foundsolution = true;
-            Console.WriteLine("foundsolution");
         }
+
+        //Print the sudoku
+        static public void print_sudoku()
+        {
+            Console.WriteLine(" "); Console.WriteLine(" ");
+            Console.WriteLine("{0}x{1} sudoku", N, N);
+            Console.WriteLine("found solution:");
+            Console.WriteLine(" ");
+
+            // Lines in the middle of the sudoku
+            string longLine = "";
+            int numberL = N + (int)Math.Sqrt(N);
+            // For a 9x9 sudoku
+            if (N < 10)
+            {
+                for (int i = 0; i < numberL - 1; i++)
+                {
+                    longLine += "- ";
+                }
+            }
+            // For double digits sudoku
+            else
+            {
+                int counter1 = 0;
+                for (int i = 0; i < numberL - 1; i++)
+                {
+                    if (counter1 == 4)
+                    {
+                        longLine += "- ";
+                        counter1 = 0;
+                    }
+                    else
+                    {
+                        longLine += "-- ";
+                        counter1++;
+                    }
+                }
+            }
+
+            int number = 0;
+
+            // Writing the solution
+            for (int i = 0; i < N; i++)
+            {
+                if (i % Math.Sqrt(N) == 0 && i != 0)
+                {
+                    Console.WriteLine(longLine);
+                }
+                string line = "";
+                int counter2 = 0;
+                for (int j = 0; j < N; j++)
+                {
+                    if (direction == "fcmcv") number = sudokufc[i, j].number;
+                    else number = sudoku[i, j];
+
+                    if (counter2 == Math.Sqrt(N) - 1 && j != N - 1)
+                    {
+                        if (number < 10 && N > 10)
+                        {
+                            line += number + "  | ";
+                        }
+                        else
+                        {
+                            line += number + " | ";
+                        }
+                        counter2 = 0;
+                    }
+                    else
+                    {
+                        if (number < 10 && N > 10)
+                        {
+                            line += number + "  ";
+                        }
+                        else
+                        {
+                            line += number + " ";
+                        }
+                        counter2++;
+                    }
+                }
+                Console.WriteLine(line);
+            }
+
+        }
+
+        // Move to a next square
         static void MoveNext()
         {
             backwards = false;
-            //Solution found
+            // if a solution has been found, stop
             if (FoundSolution()) return;
 
             switch (direction)
             {
                 case "left-down":
-                        //Backtrack next variable
-                        if (col < N - 1)
-                        {
-                            col++;
-                            //BackTrack();
-                        }
-                        else {
-                            row++;
-                            col = 0;
-                            //BackTrack();
-                        }
-                        break;
+                    // Backtrack next variable
+                    if (col < N - 1)
+                    {
+                        col++;
+                    }
+                    else
+                    {
+                        row++;
+                        col = 0;
+                    }
+                    break;
                 case "right-up":
-                        //Backtrack next variable
-                        if (col != 0)
-                        {
-                            col--;
-                        }
-                        else
-                        {
-                            row--;
-                            col = N-1;
-                        }
+                    // Backtrack next variable
+                    if (col != 0)
+                    {
+                        col--;
+                    }
+                    else
+                    {
+                        row--;
+                        col = N-1;
+                    }
                     break;
                 case "domain-oriented":
+                    // Backtrack next variable 
                     current_arrayindex++;
                     row = squaresArray[current_arrayindex].row;
                     col = squaresArray[current_arrayindex].column;
                     break;
             }
         }
+
+        // Move a sqaure back
         static void MoveBack()
         {
             backwards = true;
             //Reset the current variable
-            //Reset the current variable
             if (!unchangable[row, col])
                 sudoku[row, col] = 0;
+
             switch (direction)
             {
                 case "left-down":
-                        //Backtrack previous variable
-                        if (col == 0)
-                        {
-                            row--;
-                            col = N - 1;
-                        }
-                        else
-                        {
-                            col--;
-                        }
+                    // Backtrack previous variable
+                    if (col == 0)
+                    {
+                        row--;
+                        col = N - 1;
+                    }
+                    else
+                    {
+                        col--;
+                    }
                     break;
                 case "right-up":
-                    //Backtrack previous variable
+                    // Backtrack previous variable
                     if (col == N - 1)
                     {
                         row++;
@@ -478,19 +560,23 @@ namespace ConsoleApplication1
                     }
                     break;
                 case "domain-oriented":
+                    // Backtrack previous variable
                     current_arrayindex--;
                     row = squaresArray[current_arrayindex].row;
                     col = squaresArray[current_arrayindex].column;
                     break;
             }
         }
+
+        // Backtrack method
         static void BackTrack()
         {
             while (true)
             {
+                // If a solution was found break the loop
                 if (foundsolution) break;
-                //print_sudoku();
-                //If the variable was given, move to the next or previous
+
+                //If the variable was given, move to the next or previous square
                 if (unchangable[row, col])
                 {
                     if (backwards) MoveBack();
@@ -498,38 +584,23 @@ namespace ConsoleApplication1
                 }
                 else
                 {
-                    //If the number can still be incremented
+                    // If the number can still be incremented
                     if (sudoku[row, col] < N)
                     {
-                        //increment it by 1
+                        // Increment it by 1
                         sudoku[row, col]++;
 
-                        //If this doesnt create a violation
+                        // If this doesnt create a violation
                         if (!Violation(row,col))
                         {
-                            //Move on to the next variable
+                            // Move on to the next variable
                             MoveNext();
                         }
                     }
-                    //If the number cant be incremented, moveback to the previous variable
+                    // If the number cant be incremented, moveback to the previous variable
                     else { MoveBack(); }
                 }
             }
-        }
-
-        //Print the sudoku
-        static void print_sudoku()
-        {
-            for(int i =0; i < N;i++)
-            {
-                string line = "";
-                for ( int j = 0; j <N; j++ )
-                {
-                    line += sudoku[i,j] + " ";
-                }
-                Console.WriteLine(line);
-            }
-            Console.WriteLine("----------------------------");
         }
 
         //Check for row, column and box violations

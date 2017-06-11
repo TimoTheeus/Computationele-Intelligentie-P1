@@ -55,3 +55,5 @@ ConsoleApplication1/ConsoleApplication1/bin/Release/ConsoleApplication1.vshost.e
 *.exe
 *.exe
 ConsoleApplication1/ConsoleApplication1/bin/Debug/ConsoleApplication1.pdb
+*.exe
+*.txt
