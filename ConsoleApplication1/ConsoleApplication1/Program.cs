@@ -122,7 +122,7 @@ namespace ConsoleApplication1
                 Program.print_sudoku();
                 return;
             }
-
+            Program.recursivecalls++;
             // Copy this grid to make changes in the child
             child = new Sudoku_Grid();
             child = Clone(this);
@@ -229,10 +229,12 @@ namespace ConsoleApplication1
     {
         // Choose which algorithm
         //const string direction = "left-down"; //Method 1 : left to right and downwards
-        const string direction = "right-up"; //Method 2 : right to left and upwards
+        //const string direction = "right-up"; //Method 2 : right to left and upwards
         //const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
-        //const string direction = "fcmcv"; // Method 4 : forward checking based on the most constraining variable
+         const string direction = "fcmcv"; // Method 4 : forward checking based on the most constraining variable
         
+        static public ulong recursivecalls;
+        static public DateTime starttime;
         // Variables
         static public int N;
         static public int[,] sudoku;
@@ -253,11 +255,12 @@ namespace ConsoleApplication1
             while (true)
             {
                 foundsolution = false;
+                recursivecalls = 0;
                 backwards = false;
                 //Get a line of numbers
                 string readline = Console.ReadLine();
-                string split = string.Join(" ", readline.ToCharArray());
-                string[] line = split.Split(' ');
+                string addedSpaces = string.Join(" ", readline.ToCharArray());
+                string[] line = addedSpaces.Split(' ');
                 //Determine sudoku puzzle size
                 N = line.Length;
                 //Make the array to store the sudoku
@@ -270,9 +273,9 @@ namespace ConsoleApplication1
                     //Get the numbers in a line
                     if (i != 0)
                     {
-                        string readline2 = Console.ReadLine();
-                        string split2 = string.Join(" ", readline2.ToCharArray());
-                        line = split2.Split(' ');
+                        readline = Console.ReadLine();
+                        addedSpaces = string.Join(" ", readline.ToCharArray());
+                        line = addedSpaces.Split(' ');
                     }
 
                     // Store numbers in sudoku array
@@ -292,6 +295,8 @@ namespace ConsoleApplication1
                 if (direction == "fcmcv")
                 {
                     initialise_forwardchecking();
+                    Console.WriteLine("Recursive calls: {0}", Program.recursivecalls);
+                    Console.WriteLine("Runtime: {0} milliseconds",(DateTime.Now - starttime).TotalMilliseconds);
                 }
                 else
                 {
@@ -303,6 +308,7 @@ namespace ConsoleApplication1
         // Initialise the forward checking algorithm
         static void initialise_forwardchecking()
         {
+            starttime = DateTime.Now;
             // Make a new grid
             currentGrid = new Sudoku_Grid();
             // Add squares to the grid with their number, row and column
@@ -577,7 +583,6 @@ namespace ConsoleApplication1
         // Backtrack method
         static void BackTrack()
         {
-            ulong recursivecalls = 0;
             DateTime dt = DateTime.Now;
             while (true)
             {
