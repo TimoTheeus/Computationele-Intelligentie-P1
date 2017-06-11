@@ -229,9 +229,9 @@ namespace ConsoleApplication1
     {
         // Choose which algorithm
         //const string direction = "left-down"; //Method 1 : left to right and downwards
-        //const string direction = "right-up"; //Method 2 : right to left and upwards
+        const string direction = "right-up"; //Method 2 : right to left and upwards
         //const string direction = "domain-oriented"; //Method 3 : based on amount of numbers that can be chosen from (domainsize)
-        const string direction = "fcmcv"; // Method 4 : forward checking based on the most constraining variable
+        //const string direction = "fcmcv"; // Method 4 : forward checking based on the most constraining variable
         
         // Variables
         static public int N;
@@ -240,8 +240,8 @@ namespace ConsoleApplication1
         static public bool[,] unchangable;
         static Square[] squaresArray;
         static Sudoku_Grid currentGrid;
-        static bool foundsolution = false;
-        static bool backwards = false;
+        static bool foundsolution;
+        static bool backwards;
         static int current_arrayindex = 0;
         static int row = 0;
         static int col = 0;
@@ -252,23 +252,29 @@ namespace ConsoleApplication1
         {
             while (true)
             {
-                // Initialise sudoku puzzle
-                // Get a line of numbers
-                string[] line = Console.ReadLine().Split(' ');
-                // Determine sudoku puzzle size
+                foundsolution = false;
+                backwards = false;
+                //Get a line of numbers
+                string readline = Console.ReadLine();
+                string split = string.Join(" ", readline.ToCharArray());
+                string[] line = split.Split(' ');
+                //Determine sudoku puzzle size
                 N = line.Length;
-                // Make the array to store the sudoku
+                //Make the array to store the sudoku
                 sudoku = new int[N, N];
                 unchangable = new bool[N, N];
 
-                // Store lines
+                //Store lines
                 for (int i = 0; i < N; i++)
                 {
-                    // Get the numbers in a line
+                    //Get the numbers in a line
                     if (i != 0)
                     {
-                        line = Console.ReadLine().Split(' ');
+                        string readline2 = Console.ReadLine();
+                        string split2 = string.Join(" ", readline2.ToCharArray());
+                        line = split2.Split(' ');
                     }
+
                     // Store numbers in sudoku array
                     for (int j = 0; j < N; j++)
                     {
@@ -571,11 +577,21 @@ namespace ConsoleApplication1
         // Backtrack method
         static void BackTrack()
         {
+            ulong recursivecalls = 0;
+            DateTime dt = DateTime.Now;
             while (true)
             {
-                // If a solution was found break the loop
-                if (foundsolution) break;
 
+                // If a solution was found break the loop
+                if (foundsolution)
+                {
+                    TimeSpan runTime = DateTime.Now -dt;
+                    Console.WriteLine("Recursive calls: {0}", recursivecalls);
+                    Console.WriteLine("Runtime: {0} milliseconds", runTime.TotalMilliseconds);
+                    break;
+                }
+
+                recursivecalls++;
                 //If the variable was given, move to the next or previous square
                 if (unchangable[row, col])
                 {
