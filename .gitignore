@@ -53,3 +53,5 @@ Temporary Items
 ConsoleApplication1/ConsoleApplication1/bin/Release/ConsoleApplication1.vshost.exe.manifest
 *.exe
 *.exe
+*.exe
+ConsoleApplication1/ConsoleApplication1/bin/Debug/ConsoleApplication1.pdb

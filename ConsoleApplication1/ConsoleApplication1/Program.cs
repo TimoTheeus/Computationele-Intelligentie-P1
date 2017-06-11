@@ -36,11 +36,12 @@ namespace ConsoleApplication1
     class Sudoku_Grid
     {
        // public Sudoku_Grid child;
-        public Location[] sorted_on_domainsize;
+        //public Location[] sorted_on_domainsize;
         public Square[,] sudoku;
         Sudoku_Grid child;
         Sudoku_Grid parent;
         public int currentVariableIndex;
+        Location MCV;
         int N;
 
         public Sudoku_Grid()
@@ -54,16 +55,16 @@ namespace ConsoleApplication1
         {
             Sudoku_Grid returnClone = new Sudoku_Grid();
             returnClone.currentVariableIndex = 0;
-            returnClone.sorted_on_domainsize = new Location[other.sorted_on_domainsize.Length];
+            //returnClone.sorted_on_domainsize = new Location[other.sorted_on_domainsize.Length];
 
-            for (int i = 0; i < other.sorted_on_domainsize.Length; i++)
-            {
-                Location temp = new Location();
-                temp.row = other.sorted_on_domainsize[i].row;
-                temp.column = sorted_on_domainsize[i].column;
-                temp.size = other.sorted_on_domainsize[i].size;
-                returnClone.sorted_on_domainsize[i] = temp;
-            }
+           // for (int i = 0; i < other.sorted_on_domainsize.Length; i++)
+           // {
+            //    Location temp = new Location();
+           //     temp.row = other.sorted_on_domainsize[i].row;
+           //     temp.column = sorted_on_domainsize[i].column;
+            //    temp.size = other.sorted_on_domainsize[i].size;
+           //     returnClone.sorted_on_domainsize[i] = temp;
+           // }
             
             for (int i = 0; i < N; i++)
             {
@@ -88,9 +89,29 @@ namespace ConsoleApplication1
 
         public void ForwardCheck()
         {
-            PrintSolution();
+            //PrintSolution();
             //If solution found
-            if (sorted_on_domainsize[0].size > 800)
+            if (MCV == null)
+            {
+                Location l = new Location();
+                l.size = 900;
+                foreach (Square s in sudoku)
+                {
+                    if (!Program.unchangable[s.row, s.column])
+                    {
+                        if (s.domainSize <= l.size)
+                        {
+                            l.row = s.row;
+                            l.column = s.column;
+                            l.size = s.domainSize;
+                            if (l.size == 1)
+                                break;
+                        }
+                    }
+                }
+                MCV = l;
+            }
+            if (MCV.size > 800)
             {
                 PrintSolution();
                 return;
@@ -101,10 +122,9 @@ namespace ConsoleApplication1
             child.parent = this;
             //child.copyGrid(this);
             //child.sorted_on_domainsize = sorted_on_domainsize;
-
             //get location of most constraining square
-            int row = sorted_on_domainsize[0].row;
-            int col = sorted_on_domainsize[0].column;
+            int row = MCV.row;
+            int col = MCV.column;
             //get a variable in the domain of the most constraining square
            // foreach(Location l in sorted_on_domainsize)
           //  {
@@ -119,13 +139,9 @@ namespace ConsoleApplication1
             Console.WriteLine("currentVariableIndex "+currentVariableIndex);
             Console.WriteLine("current square: [{0},{1}]",row,col);
             -----------------------------------------------*/
-            if (currentVariableIndex >= sudoku[row, col].variables.Count)
+            if (currentVariableIndex < sudoku[row, col].variables.Count)
             {
-                parent.currentVariableIndex++;
-                parent.ForwardCheck();
-            }
-            else
-            {
+                
                 int variable = sudoku[row, col].variables[currentVariableIndex];
                 //Console.WriteLine("[{0},{1}] number:{2}", row, col,variable);
                 //Set the square to this variable
@@ -133,7 +149,7 @@ namespace ConsoleApplication1
                 //if no empty domains
                 if (child.MakeConsistent(row, col))
                 {
-                    child.MakeSorted();
+                    
                     child.ForwardCheck();
                     //  Console.WriteLine("forward!");
                 }
@@ -145,6 +161,11 @@ namespace ConsoleApplication1
                     //Console.WriteLine("squareindex:{0} variableindex{1}", currentSquareIndex, currentVariableIndex);
                     ForwardCheck();
                 }
+            }
+            else
+            {
+                parent.currentVariableIndex++;
+                parent.ForwardCheck();
             }
         }
         bool MakeConsistent(int row, int col)
@@ -207,16 +228,7 @@ namespace ConsoleApplication1
             return true;
 
         }
-        void MakeSorted()
-        {
-            //Change their domainsizes
-            for(int i = 0; i < sorted_on_domainsize.Length; i++) { 
-
-                sorted_on_domainsize[i].size = sudoku[sorted_on_domainsize[i].row, sorted_on_domainsize[i].column].domainSize;
-            }
-            //Sort
-            Array.Sort(sorted_on_domainsize, (x, y) => x.size.CompareTo(y.size));
-        }
+       
         void PrintSolution()
         {
             Console.WriteLine("----------------------------");
@@ -335,8 +347,6 @@ namespace ConsoleApplication1
                     }
                 }
             }
-            currentGrid.sorted_on_domainsize = sortedLocations.ToArray();
-            Array.Sort(currentGrid.sorted_on_domainsize, (x, y) => x.size.CompareTo(y.size));
             currentGrid.ForwardCheck();
         }
         static void initialise_domainlist()
